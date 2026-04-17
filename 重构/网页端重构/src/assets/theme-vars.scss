@@ -1,0 +1,12 @@
+@import './original_v1.css';
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* To match original saas logic if needed, or original_v1.css already does it */
+}
+
+/* Clear all the new stuff that Element Plus injected because original is not Element Plus actually! Wait, the original IS NOT Element Plus!? 
+The original CSS uses a lot of standard class names. 
+If the original is not Element Plus, then Element Plus might conflict. But we will just load original CSS last. 
+*/
