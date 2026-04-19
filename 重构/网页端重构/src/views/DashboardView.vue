@@ -337,6 +337,7 @@ const calendarOptions = computed(() => {
     },
     events: events,
     allDaySlot: false,
+    slotEventOverlap: false,
     slotMinTime: '09:00:00',
     slotMaxTime: '21:00:00',
     slotLabelFormat: { hour: 'numeric', omitZeroMinute: true, meridiem: 'short', hour12: false, affix: '时' },
