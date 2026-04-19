@@ -654,6 +654,8 @@ exports.main = async (event, context) => {
           return { success: true, msg: '鏂扮彮绾у垱寤烘垚鍔?', id: res._id };
         } else if (clsSubAction === 'update') {
           if (!classId) return { success: false, msg: '缺少班级ID' };
+          delete classData._id;
+          delete classData._openid;
           await db.collection('classes').doc(classId).update({ data: classData });
           return { success: true, msg: '鐝骇淇℃伅宸叉洿鏂?'};
         }
