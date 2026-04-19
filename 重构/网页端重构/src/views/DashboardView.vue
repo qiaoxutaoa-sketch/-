@@ -496,5 +496,30 @@ const handleCancelClass = async (event) => {
 :deep(.fc-v-event:hover) {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  z-index: 10 !important;
 }
+
+/* 强行压缩时间轴格子自然高度，以适配小高度卡片实现真·无缝自适应无滚动 */
+:deep(.fc-timegrid-slot),
+:deep(.fc-timegrid-slot-label),
+:deep(.fc-timegrid-slot-lane) {
+  height: 1.5em !important; 
+}
+
+/* 压缩左侧时间文字内边距，使其紧凑渲染 */
+:deep(.fc-timegrid-axis-cushion) {
+  padding: 0 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+}
+
+/* 作为最后的保险，强迫内部 scroller 隐藏所有轴系滚动 */
+:deep(.fc-scroller) {
+  overflow: hidden !important;
+}
+:deep(.fc) {
+  max-height: 100%;
+}
+
 </style>
