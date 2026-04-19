@@ -336,10 +336,10 @@ const calendarOptions = computed(() => {
       week: 'Week'
     },
     events: events,
+    height: '100%',
     allDaySlot: false,
     slotEventOverlap: false,
     expandRows: true,
-    slotDuration: '01:00:00',
     slotMinTime: '08:00:00',
     slotMaxTime: '20:00:00',
     slotLabelFormat: { hour: 'numeric', omitZeroMinute: true, meridiem: 'short', hour12: false, affix: '时' },
