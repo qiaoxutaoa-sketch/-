@@ -316,7 +316,7 @@ exports.main = async (event, context) => {
           // 绛栫暐 B锛氭潵婧愬懆鏄粷瀵圭┖鑽¤崱鐨勶紝鍥為€€鍒伴檷绾ч€昏緫锛岃鍙栧叏灞€ class 妯℃澘
           const classesRes = await db.collection('classes').get()
           const classes = classesRes.data || []
-          const dayMap = { '鍛ㄤ竴': 0, '鍛ㄤ簩': 1, '鍛ㄤ笁': 2, '鍛ㄥ洓': 3, '鍛ㄤ簲': 4, '鍛ㄥ叚': 5, '鍛ㄦ棩': 6 }
+          const dayMap = { '周一': 0, '周二': 1, '周三': 2, '周四': 3, '周五': 4, '周六': 5, '周日': 6 }
 
           for (let cls of classes) {
             if (!cls.scheduleDay || !cls.scheduleTime) continue
@@ -344,10 +344,10 @@ exports.main = async (event, context) => {
           }
         }
 
-        return { success: true, msg: `宸叉垚鍔?{sourceSessions.length > 0 ? '鍏嬮殕鏉ユ簮鍛ㄥ疄鍐垫帓璇? : '鐢卞叏灞€鐝骇妯℃澘娲惧彂'}鑷充笅鍛紝鏂拌惤鎴?${generatedCount} 鑺傚疄浣撹${deletedCount > 0 ? '锛堣鐩栧幓闄や簡 ' + deletedCount + ' 鑺傚簾寮冩帓鐝級' : ''}` }
+        return { success: true, msg: `已成功${sourceSessions.length > 0 ? '克隆来源周实况排课' : '由全局班级模板派发'}至目标周，新落成 ${generatedCount} 节实体课${deletedCount > 0 ? '（覆盖去除了 ' + deletedCount + ' 节废弃排班）' : ''}` }
       }
 
-      // 7.5 鏇存柊鍗曡妭瀹炰綋璇剧殑鏃ユ湡/鏃堕棿锛堟棩鍘嗘嫋鎷斤級
+      // 7.5 更新单节实体课的日期/时间（日历拖拽）
       case 'updateSession': {
         const { sessionId, date: sesDate, timeSpan } = payload;
         if (!sessionId) return { success: false, msg: '缺少课程ID' };
@@ -358,7 +358,7 @@ exports.main = async (event, context) => {
         return { success: true, msg: '课程时间已更新' };
       }
 
-      // 澶勭悊妯℃澘鏃ュ巻鍙栨秷鎺掕
+      // 处理模板日历取消排课
       case 'cancelTemplateBlock': {
         const { classId, className, date, timeSpan } = payload;
         if (!classId || !date) return { success: false, msg: '缺少参数' };
