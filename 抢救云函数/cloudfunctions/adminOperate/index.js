@@ -1,4 +1,5 @@
-// 浜戝嚱鏁板叆鍙ｆ枃浠?const cloud = require('wx-server-sdk')
+// 云函数入口文件
+const cloud = require('wx-server-sdk')
 
 // 鍒濆鍖栦簯鐜
 cloud.init({
