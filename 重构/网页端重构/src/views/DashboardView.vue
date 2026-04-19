@@ -209,7 +209,57 @@ onMounted(() => {
   adminAbbr.value = name.charAt(0) || '师'
   isAdminRole.value = checkIsAdmin()
   loadData()
+
+  // iOS 风格分段控件：注入滑块指示器
+  setTimeout(() => initSegmentedSlider(), 500)
 })
+
+/** 注入 iOS 风格滑块到 FullCalendar 的 Month/Week 按钮组 */
+const initSegmentedSlider = () => {
+  const group = document.querySelector('.fc-button-group')
+  if (!group || group.querySelector('.ios-slider')) return
+
+  const slider = document.createElement('div')
+  slider.className = 'ios-slider'
+  Object.assign(slider.style, {
+    position: 'absolute',
+    top: '3px',
+    height: 'calc(100% - 6px)',
+    background: 'white',
+    borderRadius: '999px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08)',
+    transition: 'left 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1)',
+    zIndex: '0',
+    pointerEvents: 'none'
+  })
+  group.style.position = 'relative'
+  group.insertBefore(slider, group.firstChild)
+
+  Array.from(group.querySelectorAll('.fc-button')).forEach(btn => {
+    btn.style.position = 'relative'
+    btn.style.zIndex = '1'
+  })
+
+  const updateSlider = () => {
+    const activeBtn = group.querySelector('.fc-button-active')
+    if (!activeBtn) return
+    const groupRect = group.getBoundingClientRect()
+    const btnRect = activeBtn.getBoundingClientRect()
+    slider.style.left = (btnRect.left - groupRect.left) + 'px'
+    slider.style.width = btnRect.width + 'px'
+  }
+
+  slider.style.transition = 'none'
+  updateSlider()
+  requestAnimationFrame(() => {
+    slider.style.transition = 'left 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1)'
+  })
+
+  const observer = new MutationObserver(() => updateSlider())
+  Array.from(group.querySelectorAll('.fc-button')).forEach(btn => {
+    observer.observe(btn, { attributes: true, attributeFilter: ['class'] })
+  })
+}
 
 // === Computations ===
 const todayClasses = computed(() => {
@@ -530,9 +580,9 @@ const handleCancelClass = async (event) => {
   transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 :deep(.fc-button-group > .fc-button.fc-button-active) {
-  background: white !important;
+  background: transparent !important;
   color: var(--gray-800) !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06) !important;
+  box-shadow: none !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 :deep(.fc-button-group > .fc-button:not(:first-child)) {
