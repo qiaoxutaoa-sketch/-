@@ -340,6 +340,7 @@ const calendarOptions = computed(() => {
     allDaySlot: false,
     slotEventOverlap: false,
     expandRows: true,
+    scrollTime: '08:00:00',
     slotMinTime: '08:00:00',
     slotMaxTime: '20:00:00',
     slotLabelFormat: { hour: 'numeric', omitZeroMinute: true, meridiem: 'short', hour12: false, affix: '时' },
@@ -503,7 +504,7 @@ const handleCancelClass = async (event) => {
 :deep(.fc-timegrid-slot),
 :deep(.fc-timegrid-slot-label),
 :deep(.fc-timegrid-slot-lane) {
-  height: 1.5em !important; 
+  height: 1.0em !important; 
 }
 
 /* 压缩左侧时间文字内边距，使其紧凑渲染 */
