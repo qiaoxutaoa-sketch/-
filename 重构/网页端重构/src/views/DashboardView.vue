@@ -68,9 +68,9 @@
     </div>
 
     <!-- Main Content Area: Today Schedule -->
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;flex:1 1 0%;min-height:300px">
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;flex:1 1 0%;min-height:0">
       <!-- 一周排课全景 (FullCalendar Restored) -->
-      <div class="saas-card" style="padding:20px 24px;display:flex;flex-direction:column;min-height:480px;">
+      <div class="saas-card" style="padding:20px 24px;display:flex;flex-direction:column;min-height:0;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div>
             <h3 style="margin:0 0 4px;color:var(--gray-800);font-size:18px;font-weight:700">一周排课全景</h3>
@@ -340,6 +340,7 @@ const calendarOptions = computed(() => {
     allDaySlot: false,
     slotEventOverlap: false,
     expandRows: true,
+    slotDuration: '01:00:00',
     scrollTime: '08:00:00',
     slotMinTime: '08:00:00',
     slotMaxTime: '20:00:00',
@@ -500,27 +501,5 @@ const handleCancelClass = async (event) => {
   z-index: 10 !important;
 }
 
-/* 强行压缩时间轴格子自然高度，以适配小高度卡片实现真·无缝自适应无滚动 */
-:deep(.fc-timegrid-slot),
-:deep(.fc-timegrid-slot-label),
-:deep(.fc-timegrid-slot-lane) {
-  height: 1.0em !important; 
-}
-
-/* 压缩左侧时间文字内边距，使其紧凑渲染 */
-:deep(.fc-timegrid-axis-cushion) {
-  padding: 0 4px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-}
-
-/* 作为最后的保险，强迫内部 scroller 隐藏所有轴系滚动 */
-:deep(.fc-scroller) {
-  overflow: hidden !important;
-}
-:deep(.fc) {
-  max-height: 100%;
-}
 
 </style>
