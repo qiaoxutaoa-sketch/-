@@ -1,7 +1,6 @@
-// 云函数入口文件
-const cloud = require('wx-server-sdk')
+// 浜戝嚱鏁板叆鍙ｆ枃浠?const cloud = require('wx-server-sdk')
 
-// 初始化云环境
+// 鍒濆鍖栦簯鐜
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
 })
@@ -12,7 +11,7 @@ const _ = db.command
 // 云函数入口函数
 exports.main = async (event, context) => {
   const action = event.action;
-  // Web SDK 和 小程序端传递 data 的层级可能不同，做兼容处理
+  // Web SDK 或小程序端传的 data 的层级可能不同，做兼容处理
   const payload = event.data || event;
 
   const { _callerPhone, _callerPassword } = payload;
@@ -38,7 +37,7 @@ exports.main = async (event, context) => {
 
   try {
     switch (action) {
-      // 🛡️ 0. 安全登录 (前端不再直查 teachers 表)
+      // 馃洝锔?0. 瀹夊叏鐧诲綍 (鍓嶇涓嶅啀鐩存煡 teachers 琛?
       case 'login': {
         const { phone, password } = payload;
         if (!phone || !password) return { success: false, msg: '请输入账号和密码' };
@@ -46,13 +45,13 @@ exports.main = async (event, context) => {
         if (!loginRes.data || loginRes.data.length === 0) {
           return { success: false, msg: '账号或密码错误，请重试！' };
         }
-        // 🛡️ 返回用户信息时剥离密码字段
+        // 馃洝锔?杩斿洖鐢ㄦ埛淇℃伅鏃跺墺绂诲瘑鐮佸瓧娈?        
         const user = { ...loginRes.data[0] };
         delete user.password;
         return { success: true, user };
       }
 
-      // 1. 删除学员
+      // 1. 鍒犻櫎瀛﹀憳
       case 'deleteStudent': {
         const { studentId } = payload;
         if (!studentId) return { success: false, msg: '缺少学生ID' }
@@ -60,7 +59,7 @@ exports.main = async (event, context) => {
         return { success: true, msg: '删除成功' }
       }
 
-      // 2. 学员续费 (BUG-6修复：使用原子递增代替前端覆写)
+      // 2. 瀛﹀憳缁垂 (BUG-6淇锛氫娇鐢ㄥ師瀛愰€掑浠ｆ浛鍓嶇瑕嗗啓)
       case 'renewStudent': {
         const { studentId, studentName, lastRenewalDate, addHours, money } = payload
         if (!studentId) return { success: false, msg: '缺少学生ID' }
@@ -72,12 +71,12 @@ exports.main = async (event, context) => {
           }
         })
         
-        // 记录财务流水
+        // 璁板綍璐㈠姟娴佹按
         if (money > 0) {
           await db.collection('finance_records').add({
             data: {
               studentId,
-              studentName: studentName || '未知学员',
+              studentName: studentName || '鏈煡瀛﹀憳',
               type: 'renew',
               amount: money,
               hours: addHours,
@@ -90,7 +89,7 @@ exports.main = async (event, context) => {
         return { success: true, msg: '续费成功' }
       }
 
-      // 3. 解散班级
+      // 3. 瑙ｆ暎鐝骇
       case 'deleteClass': {
         const { classId } = payload
         if (!classId) return { success: false, msg: '缺少班级ID' }
@@ -98,7 +97,7 @@ exports.main = async (event, context) => {
         return { success: true, msg: '班级已解散' }
       }
 
-      // 4. 批量消课 (新增功能核心)
+      // 4. 鎵归噺娑堣 (鏂板鍔熻兘鏍稿績)
       case 'batchConsume': {
         const { records, sendNotification, classId } = payload
         if (!records || !Array.isArray(records) || records.length === 0) return { success: false, msg: '没有需要消课的学员' }
@@ -107,13 +106,13 @@ exports.main = async (event, context) => {
         let pushCount = 0
         const consumeDate = records[0]?.date || new Date().toISOString().split('T')[0]
 
-        // 对于每一个勾选的学生，扣除课时，并增加一条消课记录
+        // 瀵逛簬姣忎竴涓嬀閫夌殑瀛︾敓锛屾墸闄よ鏃讹紝骞跺鍔犱竴鏉℃秷璇捐褰曗
         for (let i = 0; i < records.length; i++) {
           const record = records[i]
           const hours = Number(record.consumeHours) || 1
           
           try {
-            // 插入消课记录
+            // 鎻掑叆娑堣璁板綍
             await db.collection('class_records').add({
               data: {
                 studentId: record.studentId || '未知ID',
@@ -122,23 +121,19 @@ exports.main = async (event, context) => {
                 date: record.date || new Date().toISOString().split('T')[0],
                 consume: hours,
                 teacher: record.teacher || '未填写',
-                comment: record.comment || '', // 坚决不使用默认文本污染点评字段
-                courseContent: record.courseContent || '', // 确保授课内容被独立存储
-                artwork: record.artwork || '', // 接收前端统一上传的课堂风采照片
-                classId: classId && classId !== 'temp' ? classId : '',
+                comment: record.comment || '', // 鍧氬喅涓嶄娇鐢ㄩ粯璁ゆ枃鏈薄鏌撶偣璇勫瓧娈?                courseContent: record.courseContent || '', // 纭繚鎺堣鍐呭琚嫭绔嬪瓨鍌?                artwork: record.artwork || '', // 鎺ユ敹鍓嶇缁熶竴涓婁紶鐨勮鍫傞閲囩収鐗?                classId: classId && classId !== 'temp' ? classId : '',
                 timestamp: Date.now()
               }
             })
 
-            // 扣减对应学生的剩余课时
-            // 使用 db.command.inc 原子操作直接在云端减去课时，最安全
+            // 鎵ｅ噺瀵瑰簲瀛︾敓鐨勫墿浣欒鏃?            // 浣跨敤 db.command.inc 鍘熷瓙鎿嶄綔鐩存帴鍦ㄤ簯绔噺鍘昏鏃讹紝鏈€瀹夊叏
             await db.collection('students').doc(record.studentId).update({
               data: {
                 remain: _.inc(-hours)
               }
             })
             
-            // 如果开启了发送微信通知
+            // 濡傛灉寮€鍚簡鍙戦€佸井淇￠€氱煡
             if (sendNotification) {
               const stuRes = await db.collection('students').doc(record.studentId).get()
               const stuData = stuRes.data
@@ -151,26 +146,24 @@ exports.main = async (event, context) => {
                     data: {
                       thing1: { value: record.studentName },       // 假设 thing1 是姓名
                       thing2: { value: record.course },            // 假设 thing2 是课程
-                      number3: { value: hours },                   // 假设 number3 是扣除课时
-                      number4: { value: stuData.remain - hours }   // 假设 number4 是剩余课时
                     },
-                    templateId: 'ab4rDbmy3a5LOR76YVhZVqIGkxocMbZrkrZQXj2r37U' // 需要在微信后台申请替换
+                    templateId: 'ab4rDbmy3a5LOR76YVhZVqIGkxocMbZrkrZQXj2r37U' // 闇€瑕佸湪寰俊鍚庡彴鐢宠鏇挎崲
                   })
                   pushCount++
                 } catch (pushErr) {
-                  console.error(`云推扣课通知给 ${record.studentName} 失败:`, pushErr)
+                  console.error(`浜戞帹鎵ｈ閫氱煡缁?${record.studentName} 澶辫触:`, pushErr)
                 }
               }
             }
 
             successCount++
           } catch (itemErr) {
-            console.error(`处理学员 ${record.studentName} 划扣时出错:`, itemErr)
-            // 继续执行下一个，不中断整个循环
+            console.error(`澶勭悊瀛﹀憳 ${record.studentName} 鍒掓墸鏃跺嚭閿?`, itemErr)
           }
+            // 继续执行下一个，不中断整个循环
         }
         
-        // 更新班级/排课的消课状态
+        // 鏇存柊鐝骇/鎺掕鐨勬秷璇剧姸鎬?        
         if (classId && classId !== 'temp') {
           try {
             await db.collection('classes').doc(classId).update({
@@ -184,10 +177,10 @@ exports.main = async (event, context) => {
           } catch(e) {}
         }
         
-        return { success: true, msg: `成功完成 ${successCount} 名学员的划扣单据。${sendNotification ? `(并尝试发出了 ${pushCount} 条微信下行通知)` : ''}` }
+        return { success: true, msg: `已成功划扣 ${successCount} 位学员的课时。${sendNotification ? `(并发出 ${pushCount} 条微信通知)` : ''}` }
       }
 
-      // 5. 更新系统配置选项 (新增)
+      
       case 'updateSettings': {
         const { type, contentOpts, remarkOpts, role } = payload
         if (role !== 'admin') return { success: false, msg: '权限不足：仅管理员可以修改底层配置模板' }
@@ -206,26 +199,26 @@ exports.main = async (event, context) => {
         return { success: true, msg: '配置已更新' }
       }
 
-      // 6. 教师权限档案管理 (二期新增)
+      // 6. 鏁欏笀鏉冮檺妗ｆ绠＄悊 (浜屾湡鏂板)
       case 'manageTeacher': {
         const { subAction, adminPassword, teacherItem, role } = payload
         
-        // 1. 角色阻断 (从云端做二度校验，防止前端篡改)
+        // 1. 瑙掕壊闃绘柇 (浠庝簯绔仛浜屽害鏍￠獙锛岄槻姝㈠墠绔鏀?
         if (role !== 'admin') return { success: false, msg: '越权操作：仅超管可管理教师档案' }
         
-        // 2. 密码二次验证 (从云端 settings 集合读取超管密码)
+        // 2. 瀵嗙爜浜屾楠岃瘉 (浠庝簯绔?settings 闆嗗悎璇诲彇瓒呯瀵嗙爜)
         const sysSettings = await db.collection('settings').where({ type: 'system_auth' }).get();
-        // 🛡️ 安全加固：不再提供兜底默认密码，如果未配置则直接拒绝
+        // 馃洝锔?瀹夊叏鍔犲浐锛氫笉鍐嶆彁渚涘厹搴曢粯璁ゅ瘑鐮侊紝濡傛灉鏈厤缃垯鐩存帴鎷掔粷
         if (!sysSettings.data || sysSettings.data.length === 0 || !sysSettings.data[0].adminPassword) {
           return { success: false, msg: '系统安全授权码尚未配置！请先在云数据库 settings 集合中添加 system_auth 记录并设置 adminPassword 字段。' };
         }
         const realAdminPwd = sysSettings.data[0].adminPassword;
 
-        if (adminPassword !== realAdminPwd) return { success: false, msg: '超管操作密码验证失败！' }
+        if (adminPassword !== realAdminPwd) return { success: false, msg: '瓒呯鎿嶄綔瀵嗙爜楠岃瘉澶辫触锛?'}
 
         if (subAction === 'add') {
           const itemToSave = { ...teacherItem, role: 'teacher', timestamp: Date.now() }
-          delete itemToSave._id // 极其关键：防止前端传来的空字符串 '' 作为真正的 ID 写入数据库
+          delete itemToSave._id // 鏋佸叾鍏抽敭锛氶槻姝㈠墠绔紶鏉ョ殑绌哄瓧绗︿覆 '' 浣滀负鐪熸鐨?ID 鍐欏叆鏁版嵁搴?
           const res = await db.collection('teachers').add({ 
             data: itemToSave 
           })
@@ -235,15 +228,15 @@ exports.main = async (event, context) => {
           const id = teacherItem._id
           delete teacherItem._id
           await db.collection('teachers').doc(id).update({ data: teacherItem })
-          return { success: true, msg: '教师基本档案已更新' }
+          return { success: true, msg: '教师基本档案已更新'}
         } 
         else if (subAction === 'delete') {
-          if (!teacherItem._id) return { success: false, msg: '缺失记录ID' }
+          if (!teacherItem._id) return { success: false, msg: '缂哄け璁板綍ID' }
           await db.collection('teachers').doc(teacherItem._id).remove()
           return { success: true, msg: '教师账号已注销' }
         } 
         else if (subAction === 'resetPwd') {
-          if (!teacherItem._id || !teacherItem.password) return { success: false, msg: '缺失验证信息' }
+          if (!teacherItem._id || !teacherItem.password) return { success: false, msg: '缂哄け楠岃瘉淇℃伅' }
           await db.collection('teachers').doc(teacherItem._id).update({ 
             data: { password: teacherItem.password } 
           })
@@ -252,10 +245,10 @@ exports.main = async (event, context) => {
         return { success: false, msg: '未知的子操作' }
       }
 
-      // 7. 复制课表至指定周 (优先克隆来源周的实体课表，若来源周为空，则退化使用全局模板)
+      // 7. 澶嶅埗璇捐〃鑷虫寚瀹氬懆 (浼樺厛鍏嬮殕鏉ユ簮鍛ㄧ殑瀹炰綋璇捐〃锛岃嫢鏉ユ簮鍛ㄤ负绌猴紝鍒欓€€鍖栦娇鐢ㄥ叏灞€妯℃澘)
       case 'copyWeekSchedule': {
         const { role, mondayDateStr, nextWeekMondayTimestamp, sourceMondayStr } = payload
-        if (role !== 'admin') return { success: false, msg: '权限不足：仅管理员可以执行复制课表操作' }
+        if (role !== 'admin') return { success: false, msg: '权限不足：仅管理员可以执行复制课表操作'}
         
         let targetMondayStr = mondayDateStr
         if (!targetMondayStr && nextWeekMondayTimestamp) {
@@ -264,12 +257,12 @@ exports.main = async (event, context) => {
         }
         if (!targetMondayStr) return { success: false, msg: '缺少目标周一日期参数' }
 
-        // 目标周的时间边界解析
+        // 鐩爣鍛ㄧ殑鏃堕棿杈圭晫瑙ｆ瀽
         const [mY, mM, mD] = targetMondayStr.split('-').map(Number)
         const targetSundayDate = new Date(mY, mM - 1, mD + 6, 12, 0, 0)
         const targetSundayStr = `${targetSundayDate.getFullYear()}-${String(targetSundayDate.getMonth()+1).padStart(2,'0')}-${String(targetSundayDate.getDate()).padStart(2,'0')}`
 
-        // 是否具有来源周 (新版前端会传入 sourceMondayStr)
+        // 鏄惁鍏锋湁鏉ユ簮鍛?(鏂扮増鍓嶇浼氫紶鍏?sourceMondayStr)
         let sourceSessions = []
         if (sourceMondayStr) {
           const [sY, sM, sD] = sourceMondayStr.split('-').map(Number)
@@ -282,7 +275,7 @@ exports.main = async (event, context) => {
           sourceSessions = sourceSessionsRes.data || []
         }
 
-        // 先清空目标周(新周)原来可能有的所有 sessions
+        // 鍏堟竻绌虹洰鏍囧懆(鏂板懆)鍘熸潵鍙兘鏈夌殑鎵€鏈?sessions
         let deletedCount = 0
         const oldSessionsRes = await db.collection('class_sessions').where({
           date: _.gte(targetMondayStr).and(_.lte(targetSundayStr))
@@ -294,9 +287,9 @@ exports.main = async (event, context) => {
 
         let generatedCount = 0
 
-        // 根据来源数据生成目标周
+        // 鏍规嵁鏉ユ簮鏁版嵁鐢熸垚鐩爣鍛?
         if (sourceSessions.length > 0) {
-          // 策略 A：来源周有物理排课，严格克隆实况！将日期间隔延后7天
+          // 绛栫暐 A锛氭潵婧愬懆鏈夌墿鐞嗘帓璇撅紝涓ユ牸鍏嬮殕瀹炲喌锛佸皢鏃ユ湡闂撮殧寤跺悗7澶?          
           for (let ses of sourceSessions) {
             const [sesY, sesM, sesD] = ses.date.split('-').map(Number)
             const clonedDateObj = new Date(sesY, sesM - 1, sesD + 7, 12, 0, 0)
@@ -319,10 +312,10 @@ exports.main = async (event, context) => {
             } catch(e) {}
           }
         } else {
-          // 策略 B：来源周是绝对空荡荡的，回退到降级逻辑，读取全局 class 模板
+          // 绛栫暐 B锛氭潵婧愬懆鏄粷瀵圭┖鑽¤崱鐨勶紝鍥為€€鍒伴檷绾ч€昏緫锛岃鍙栧叏灞€ class 妯℃澘
           const classesRes = await db.collection('classes').get()
           const classes = classesRes.data || []
-          const dayMap = { '周一': 0, '周二': 1, '周三': 2, '周四': 3, '周五': 4, '周六': 5, '周日': 6 }
+          const dayMap = { '鍛ㄤ竴': 0, '鍛ㄤ簩': 1, '鍛ㄤ笁': 2, '鍛ㄥ洓': 3, '鍛ㄤ簲': 4, '鍛ㄥ叚': 5, '鍛ㄦ棩': 6 }
 
           for (let cls of classes) {
             if (!cls.scheduleDay || !cls.scheduleTime) continue
@@ -350,10 +343,10 @@ exports.main = async (event, context) => {
           }
         }
 
-        return { success: true, msg: `已成功${sourceSessions.length > 0 ? '克隆来源周实况排课' : '由全局班级模板派发'}至下周，新落成 ${generatedCount} 节实体课${deletedCount > 0 ? '（覆盖去除了 ' + deletedCount + ' 节废弃排班）' : ''}` }
+        return { success: true, msg: `宸叉垚鍔?{sourceSessions.length > 0 ? '鍏嬮殕鏉ユ簮鍛ㄥ疄鍐垫帓璇? : '鐢卞叏灞€鐝骇妯℃澘娲惧彂'}鑷充笅鍛紝鏂拌惤鎴?${generatedCount} 鑺傚疄浣撹${deletedCount > 0 ? '锛堣鐩栧幓闄や簡 ' + deletedCount + ' 鑺傚簾寮冩帓鐝級' : ''}` }
       }
 
-      // 7.5 更新单节实体课的日期/时间（日历拖拽）
+      // 7.5 鏇存柊鍗曡妭瀹炰綋璇剧殑鏃ユ湡/鏃堕棿锛堟棩鍘嗘嫋鎷斤級
       case 'updateSession': {
         const { sessionId, date: sesDate, timeSpan } = payload;
         if (!sessionId) return { success: false, msg: '缺少课程ID' };
@@ -364,10 +357,10 @@ exports.main = async (event, context) => {
         return { success: true, msg: '课程时间已更新' };
       }
 
-      // 处理模板日历取消排课
+      // 澶勭悊妯℃澘鏃ュ巻鍙栨秷鎺掕
       case 'cancelTemplateBlock': {
         const { classId, className, date, timeSpan } = payload;
-        if (!classId || !date) return { success: false, msg: '缺少关键参数' };
+        if (!classId || !date) return { success: false, msg: '缺少参数' };
         await db.collection('class_sessions').add({
           data: {
             classId,
@@ -381,7 +374,7 @@ exports.main = async (event, context) => {
         return { success: true, msg: '课节已取消' };
       }
 
-      // 7.6 删除单节实体课
+      // 7.6 鍒犻櫎鍗曡妭瀹炰綋璇?
       case 'deleteSession': {
         const { sessionId } = payload;
         if (!sessionId) return { success: false, msg: '缺少课程ID' };
@@ -389,7 +382,7 @@ exports.main = async (event, context) => {
         return { success: true, msg: '课程已取消' };
       }
 
-      // 7.7 添加单节临时课/加课 (点击日历空白格)
+      // 7.7 娣诲姞鍗曡妭涓存椂璇?鍔犺 (鐐瑰嚮鏃ュ巻绌虹櫧鏍?
       case 'addSession': {
         const { classId, className, date, timeSpan } = payload;
         if (!classId || !date || !timeSpan) return { success: false, msg: '缺少排课关键参数' };
@@ -406,7 +399,7 @@ exports.main = async (event, context) => {
         return { success: true, msg: '单次课节已添加' };
       }
 
-      // 8. 处理家长端报名申请 (Approve/Reject)
+      // 8. 澶勭悊瀹堕暱绔姤鍚嶇敵璇?(Approve/Reject)
       case 'manageApplication': {
         const { applicationId, status, studentId, operator } = payload
         if (!applicationId || !status) return { success: false, msg: '缺少必要参数' }
@@ -424,16 +417,16 @@ exports.main = async (event, context) => {
         return { success: true, msg: '申请状态更新成功' }
       }
 
-      // 8.5 添加新学员及财务流水
+      // 8.5 娣诲姞鏂板鍛樺強璐㈠姟娴佹按
       case 'addStudent': {
         const { studentData, moneyNum } = payload
         
-        // 1. 写入学生表
+        // 1. 鍐欏叆瀛︾敓琛?
         const res = await db.collection('students').add({
           data: studentData
         });
 
-        // 2. 如果实收金额大于0，写入财务表
+        // 2. 濡傛灉瀹炴敹閲戦澶т簬0锛屽啓鍏ヨ储鍔¤〃
         if (moneyNum > 0) {
           await db.collection('finance_records').add({
             data: {
@@ -451,7 +444,7 @@ exports.main = async (event, context) => {
         return { success: true, msg: '添加学员成功', id: res._id }
       }
 
-      // 10. Epic 7: 家长获取名下绑定的所有学生档案
+      // 10. Epic 7: 瀹堕暱鑾峰彇鍚嶄笅缁戝畾鐨勬墍鏈夊鐢熸。妗?
       case 'getMyStudents': {
         const wxContext = cloud.getWXContext()
         const openid = wxContext.OPENID
@@ -465,32 +458,30 @@ exports.main = async (event, context) => {
         return { success: true, data: res.data }
       }
 
-      // 10.5 Epic 10: 家长获取专属负责老师们的联系方式
+      // 10.5 Epic 10: 瀹堕暱鑾峰彇涓撳睘璐熻矗鑰佸笀浠殑鑱旂郴鏂瑰紡
       case 'getMyTeachers': {
         const wxContext = cloud.getWXContext()
         const openid = wxContext.OPENID
         console.log('[getMyTeachers] called with openid:', openid)
 
-        if (!openid) return { success: false, msg: '未授权' }
+        if (!openid) return { success: false, msg: '未授权'}
 
-        // 1. 获取该家长名下的所有学员
+        // 1. 鑾峰彇璇ュ闀垮悕涓嬬殑鎵€鏈夊鍛?
         const stuRes = await db.collection('students').where({ _openid: openid }).get()
         const stuIds = stuRes.data.map(s => s._id)
         console.log('[getMyTeachers] Found students for openid:', stuIds)
         if (stuIds.length === 0) return { success: true, data: [] }
 
-        // 2. 查找所有的班级并在代码中做数组求交集过滤，避免云开发使用 _.in 处理双数组的局限性
-        const classRes = await db.collection('classes').get()
+        // 2. 鏌ユ壘鎵€鏈夌殑鐝骇骞跺湪浠ｇ爜涓仛鏁扮粍姹備氦闆嗚繃婊わ紝閬垮厤浜戝紑鍙戜娇鐢?_.in 澶勭悊鍙屾暟缁勭殑灞€闄愭€?        const classRes = await db.collection('classes').get()
         const myClasses = classRes.data.filter(cls => {
           if (!cls.studentIds || !Array.isArray(cls.studentIds)) return false;
-          // 只要该班级里包含家长名下的任何一个孩子，该负责老师就属于该家长
+          // 鍙璇ョ彮绾ч噷鍖呭惈瀹堕暱鍚嶄笅鐨勪换浣曚竴涓瀛愶紝璇ヨ礋璐ｈ€佸笀灏卞睘浜庤瀹堕暱
           return cls.studentIds.some(id => stuIds.includes(id));
         });
         
         console.log('[getMyTeachers] Filtered matched classes:', myClasses)
 
-        // 3. 提取老师的去重联系方式
-        const teachers = [];
+        // 3. 鎻愬彇鑰佸笀鐨勫幓閲嶈仈绯绘柟寮?        const teachers = [];
         const seenPhones = new Set();
         myClasses.forEach(cls => {
            if (cls.teacherName && cls.teacherPhone && !seenPhones.has(cls.teacherPhone)) {
@@ -503,15 +494,15 @@ exports.main = async (event, context) => {
         return { success: true, data: teachers }
       }
 
-      // 11. Epic 7: 家长获取某位学生的历史消课/点评记录
+      // 11. Epic 7: 瀹堕暱鑾峰彇鏌愪綅瀛︾敓鐨勫巻鍙叉秷璇?鐐硅瘎璁板綍
       case 'getMyRecords': {
         const { studentId, limit = 20 } = payload
         const wxContext = cloud.getWXContext()
         const openid = wxContext.OPENID
         
-        if (!studentId || !openid) return { success: false, msg: '缺少参数或授权信息' }
+        if (!studentId || !openid) return { success: false, msg: '缺少参数或授权信息'}
 
-        // 做一层鉴权：为了防止抓包脱库，验证请求的这个 studentId 是不是真的属于这个 openid
+        // 鍋氫竴灞傞壌鏉冿細涓轰簡闃叉鎶撳寘鑴卞簱锛岄獙璇佽姹傜殑杩欎釜 studentId 鏄笉鏄湡鐨勫睘浜庤繖涓?openid
         const stuRes = await db.collection('students').doc(studentId).get()
         if (!stuRes.data || stuRes.data._openid !== openid) {
           return { success: false, msg: '越权访问：该学员未绑定至您的微信' }
@@ -525,8 +516,8 @@ exports.main = async (event, context) => {
 
         const records = res.data
 
-        // 核心重构 13-2: Storage Protocol Normalization
-        // 把所有的 cloud:// 协议直接在上帝视角(云函数后台)转换为临时 https 链接，彻底绕过小程序端可能出现的任何图片白名单/渲染兼容问题。
+        // 鏍稿績閲嶆瀯 13-2: Storage Protocol Normalization
+        // 鎶婃墍鏈夌殑 cloud:// 鍗忚鐩存帴鍦ㄤ笂甯濊瑙?浜戝嚱鏁板悗鍙?杞崲涓轰复鏃?https 閾炬帴锛屽交搴曠粫杩囧皬绋嬪簭绔彲鑳藉嚭鐜扮殑浠讳綍鍥剧墖鐧藉悕鍗?娓叉煋鍏煎闂銆?
         try {
           const fileIDsToConvert = records
             .filter(r => r.artwork && r.artwork.startsWith('cloud://'))
@@ -535,7 +526,7 @@ exports.main = async (event, context) => {
           if (fileIDsToConvert.length > 0) {
             const urlRes = await cloud.getTempFileURL({ fileList: fileIDsToConvert })
             
-            // 将拿到的真实 HTTPS 链接回填给对应的 record
+            // 灏嗘嬁鍒扮殑鐪熷疄 HTTPS 閾炬帴鍥炲～缁欏搴旂殑 record
             const urlMap = {}
             urlRes.fileList.forEach(f => {
               if (f.tempFileURL) {
@@ -550,14 +541,14 @@ exports.main = async (event, context) => {
             })
           }
         } catch (convertErr) {
-          console.error('[getMyRecords] 转换图片链接失败:', convertErr)
-          // 哪怕报错了，也把原始数据丢回给小程序（小程序端底层其实也是支持直接渲染 cloud:// 的，这只是一层兜底保障）
+          console.error('[getMyRecords] 杞崲鍥剧墖閾炬帴澶辫触:', convertErr)
+          // 鍝€曟姤閿欎簡锛屼篃鎶婂師濮嬫暟鎹涪鍥炵粰灏忕▼搴忥紙灏忕▼搴忕搴曞眰鍏跺疄涔熸槸鏀寔鐩存帴娓叉煋 cloud:// 鐨勶紝杩欏彧鏄竴灞傚厹搴曚繚闅滐級
         }
 
         return { success: true, data: records }
       }
 
-      // 12. Epic 8: 老生账号找回与微信一对一绑定
+      // 12. Epic 8: 鑰佺敓璐﹀彿鎵惧洖涓庡井淇′竴瀵逛竴缁戝畾
       case 'bindStudent': {
         const { studentName, phone } = payload
         const wxContext = cloud.getWXContext()
@@ -565,34 +556,34 @@ exports.main = async (event, context) => {
 
         if (!studentName || !phone || !openid) return { success: false, msg: '缺少校验参数' }
 
-        // 查找是否匹配
+        // 鏌ユ壘鏄惁鍖归厤
         const res = await db.collection('students').where({
           name: studentName,
           phone: phone
         }).get()
 
         if (!res.data || res.data.length === 0) {
-          return { success: false, msg: '未找到匹配的学员档案，请检查姓名与当时预留的手机号' }
+          return { success: false, msg: '鏈壘鍒板尮閰嶇殑瀛﹀憳妗ｆ锛岃妫€鏌ュ鍚嶄笌褰撴椂棰勭暀鐨勬墜鏈哄彿' }
         }
 
         const targetStudent = res.data[0]
 
-        // 如果该学员已经被绑定过了（且绑定的不是当前微信号）
+        // 濡傛灉璇ュ鍛樺凡缁忚缁戝畾杩囦簡锛堜笖缁戝畾鐨勪笉鏄綋鍓嶅井淇″彿锛?
         if (targetStudent._openid && targetStudent._openid !== openid) {
-          return { success: false, msg: '该学员已被其他微信号绑定，如需解绑请联系机构老师' }
+          return { success: false, msg: '璇ュ鍛樺凡琚叾浠栧井淇″彿缁戝畾锛屽闇€瑙ｇ粦璇疯仈绯绘満鏋勮€佸笀' }
         }
 
-        // 把当前家长的 openid 写进去
+        // 鎶婂綋鍓嶅闀跨殑 openid 鍐欒繘鍘?
         await db.collection('students').doc(targetStudent._id).update({
           data: {
             _openid: openid
           }
         })
 
-        return { success: true, msg: '认领绑定成功！' }
+        return { success: true, msg: '认领绑定成功：' }
       }
 
-      // 🛡️ 13. 教师端点评内容写回 (前端不再直写 class_records)
+      // 馃洝锔?13. 鏁欏笀绔偣璇勫唴瀹瑰啓鍥?(鍓嶇涓嶅啀鐩村啓 class_records)
       case 'updateReview': {
         const { recordId, comment, artwork } = payload;
         if (!recordId) return { success: false, msg: '缺少消课记录ID' };
@@ -603,16 +594,15 @@ exports.main = async (event, context) => {
         return { success: true, msg: '点评已保存' };
       }
 
-      // 13.5 家长端及教师端自主重置学员个人头像
+      // 13.5 瀹堕暱绔強鏁欏笀绔嚜涓婚噸缃鍛樹釜浜哄ご鍍?
       case 'updateStudentAvatar': {
         const { studentId, avatarUrl } = payload;
         const wxContext = cloud.getWXContext();
         const openid = wxContext.OPENID;
 
-        if (!studentId || !avatarUrl || !openid) return { success: false, msg: '缺少参数或授权信息缺失' };
+        if (!studentId || !avatarUrl || !openid) return { success: false, msg: '缺少参数鎴栨巿鏉冧俊鎭己澶?'};
 
-        // 鉴权：只有绑定了该家长的学生，才能被该家长修改头像
-        const stuRes = await db.collection('students').doc(studentId).get();
+        // 閴存潈锛氬彧鏈夌粦瀹氫簡璇ュ闀跨殑瀛︾敓锛屾墠鑳借璇ュ闀夸慨鏀瑰ご鍍?        const stuRes = await db.collection('students').doc(studentId).get();
         if (!stuRes.data || stuRes.data._openid !== openid) {
           return { success: false, msg: '越权操作：只能修改自己关联绑定的学员头像' };
         }
@@ -621,21 +611,21 @@ exports.main = async (event, context) => {
           data: { avatar: avatarUrl }
         });
 
-        return { success: true, msg: '更换成功' };
+        return { success: true, msg: '鏇存崲鎴愬姛' };
       }
 
-      // 13.6 教师端自主重置个人头像 (教师专属机制)
+      // 13.6 鏁欏笀绔嚜涓婚噸缃釜浜哄ご鍍?(鏁欏笀涓撳睘鏈哄埗)
       case 'updateTeacherAvatar': {
         const { teacherId, avatarUrl, _callerPhone, _callerPassword } = payload;
         if (!teacherId || !avatarUrl) return { success: false, msg: '缺少参数' };
         
-        // 鉴权把关：确保当前操作的教师 _id 确实匹配于其上传的登录凭证
+        // 閴存潈鎶婂叧锛氱‘淇濆綋鍓嶆搷浣滅殑鏁欏笀 _id 纭疄鍖归厤浜庡叾涓婁紶鐨勭櫥褰曞嚟璇?
         const tRes = await db.collection('teachers').where({ phone: _callerPhone, password: _callerPassword }).get();
         if(!tRes.data || tRes.data.length === 0 || tRes.data[0]._id !== teacherId) {
-          return { success: false, msg: '越权操作：只能修改属于自己账号的头像' };
+          return { success: false, msg: '瓒婃潈鎿嶄綔锛氬彧鑳戒慨鏀瑰睘浜庤嚜宸辫处鍙风殑澶村儚' };
         }
 
-        // 修改云数据库
+        // 淇敼浜戞暟鎹簱
         await db.collection('teachers').doc(teacherId).update({
           data: { avatar: avatarUrl }
         });
@@ -643,11 +633,11 @@ exports.main = async (event, context) => {
         return { success: true, msg: '教师头像更换成功' };
       }
 
-      // 🛡️ 14. 编辑学员档案 (BUG-3修复：前端不再直写 students)
+      // 馃洝锔?14. 缂栬緫瀛﹀憳妗ｆ (BUG-3淇锛氬墠绔笉鍐嶇洿鍐?students)
       case 'updateStudent': {
         const { studentId, updateData } = payload;
         if (!studentId) return { success: false, msg: '缺少学生ID' };
-        // 安全过滤：只允许更新这些字段
+        // 瀹夊叏杩囨护锛氬彧鍏佽鏇存柊杩欎簺瀛楁
         const allowed = ['name', 'gender', 'age', 'phone', 'address', 'course'];
         const safeData = {};
         allowed.forEach(k => { if (updateData[k] !== undefined) safeData[k] = updateData[k]; });
@@ -655,22 +645,22 @@ exports.main = async (event, context) => {
         return { success: true, msg: '学员档案更新成功' };
       }
 
-      // 🛡️ 15. 创建/编辑班级 (BUG-3修复：前端不再直写 classes)
+      // 馃洝锔?15. 鍒涘缓/缂栬緫鐝骇 (BUG-3淇锛氬墠绔笉鍐嶇洿鍐?classes)
       case 'manageClass': {
         const { subAction: clsSubAction, classId, classData } = payload;
         if (clsSubAction === 'add') {
           classData.createdTimestamp = Date.now();
           const res = await db.collection('classes').add({ data: classData });
-          return { success: true, msg: '新班级创建成功', id: res._id };
+          return { success: true, msg: '鏂扮彮绾у垱寤烘垚鍔?', id: res._id };
         } else if (clsSubAction === 'update') {
           if (!classId) return { success: false, msg: '缺少班级ID' };
           await db.collection('classes').doc(classId).update({ data: classData });
-          return { success: true, msg: '班级信息已更新' };
+          return { success: true, msg: '鐝骇淇℃伅宸叉洿鏂?'};
         }
-        return { success: false, msg: '未知的班级操作' };
+        return { success: false, msg: '鏈煡鐨勭彮绾ф搷浣?'};
       }
 
-      // 🛡️ 16. 更新排课时间 (BUG-3修复：日历拖拽不再直写)
+      // 馃洝锔?16. 鏇存柊鎺掕鏃堕棿 (BUG-3淇锛氭棩鍘嗘嫋鎷戒笉鍐嶇洿鍐?
       case 'updateClassSchedule': {
         const { classId: schedClassId, scheduleDay, scheduleTime } = payload;
         if (!schedClassId) return { success: false, msg: '缺少班级ID' };
@@ -680,14 +670,14 @@ exports.main = async (event, context) => {
         return { success: true, msg: '排课时间已更新' };
       }
 
-      // 🛡️ 17. 家长提交请假 (BUG-4修复：走云函数而非直写)
+      // 馃洝锔?17. 瀹堕暱鎻愪氦璇峰亣 (BUG-4淇锛氳蛋浜戝嚱鏁拌€岄潪鐩村啓)
       case 'submitLeave': {
         const wxContext = cloud.getWXContext();
         const openid = wxContext.OPENID;
-        if (!openid) return { success: false, msg: '未授权' };
+        if (!openid) return { success: false, msg: '未授权'};
         const { studentId: leaveStudentId, studentName: leaveStuName, date: leaveDate, reason } = payload;
         if (!leaveStudentId || !leaveDate || !reason) return { success: false, msg: '缺少必要参数' };
-        // 验证该学员属于该家长
+        // 楠岃瘉璇ュ鍛樺睘浜庤瀹堕暱
         const stuCheck = await db.collection('students').doc(leaveStudentId).get();
         if (!stuCheck.data || stuCheck.data._openid !== openid) {
           return { success: false, msg: '无权为该学员请假' };
@@ -706,7 +696,7 @@ exports.main = async (event, context) => {
         return { success: true, msg: '请假成功' };
       }
 
-      // 18. 处理请假审批 (绕过前端安全规则直写静默失败Bug)
+      // 18. 澶勭悊璇峰亣瀹℃壒 (缁曡繃鍓嶇瀹夊叏瑙勫垯鐩村啓闈欓粯澶辫触Bug)
       case 'manageLeave': {
         const { leaveId, status } = payload;
         if (!leaveId || !status) return { success: false, msg: '缺少必要参数' };
@@ -716,55 +706,56 @@ exports.main = async (event, context) => {
         return { success: true, msg: '请假状态已更新' };
       }
 
-      // 19. UGC 文本合规安全检测 (防注入审查必接，返回 true 代表安全，false 代表拒审)
+      // 19. UGC 鏂囨湰鍚堣瀹夊叏妫€娴?(闃叉敞鍏ュ鏌ュ繀鎺ワ紝杩斿洖 true 浠ｈ〃瀹夊叏锛宖alse 浠ｈ〃鎷掑)
       case 'msgSecCheck': {
         const { content } = payload;
-        if (!content) return { success: true, msg: 'empty_pass' }; // 控制空验证
+        if (!content) return { success: true, msg: 'empty_pass' }; // 鎺у埗绌洪獙璇?
         try {
-          // 调用微信底层安全检测引擎 (V1通用版)
+          // 璋冪敤寰俊搴曞眰瀹夊叏妫€娴嬪紩鎿?(V1閫氱敤鐗?
           const checkRes = await cloud.openapi.security.msgSecCheck({
             content: content
           });
           if (checkRes.errCode === 0) {
             return { success: true, msg: 'ok' };
           }
-          return { success: false, msg: '涉嫌违反安全公约' };
+          return { success: false, msg: '娑夊珜杩濆弽瀹夊叏鍏害' };
         } catch (err) {
-          // errCode: 87014 即为命中违规文本
-          console.warn('【安全拦截】', err);
-          return { success: false, msg: '包含敏感、违法或不当词汇，已被平台系统拦截。' };
+          // errCode: 87014 鍗充负鍛戒腑杩濊鏂囨湰
+          console.warn('銆愬畨鍏ㄦ嫤鎴€?', err);
+          return { success: false, msg: '鍖呭惈鏁忔劅銆佽繚娉曟垨涓嶅綋璇嶆眹锛屽凡琚钩鍙扮郴缁熸嫤鎴€?'};
         }
       }
 
-      // 20. 生成家长端入口暗门二维码 (B端无限制码)
+      // 20. 鐢熸垚瀹堕暱绔叆鍙ｆ殫闂ㄤ簩缁寸爜 (B绔棤闄愬埗鐮?
       case 'generateVipQrCode': {
         const { role } = payload;
-        if (role !== 'admin') return { success: false, msg: '权限不足：仅超管可以提取专属入场二维码' };
+        if (role !== 'admin') return { success: false, msg: '鏉冮檺涓嶈冻锛氫粎瓒呯鍙互鎻愬彇涓撳睘鍏ュ満浜岀淮鐮?'};
         
         try {
           const result = await cloud.openapi.wxacode.getUnlimited({
             scene: 'unlock',
             page: 'pages/index/index',
             width: 430,
-            check_path: false // 【关键修复】：关闭路径校验。由于您的小程序这版还没发布，不关它微信底层会报错说找不到页面
+            
+            check_path: false // 【关键修复】：关闭路径校验。由于您的小程序这版还没发布，不管它微信底层会报错说找不到页面。
           });
           
-          // 直接将二进制的图片缓存转为 base64 发给前端网页，无需向云存储存盘
+          // 鐩存帴灏嗕簩杩涘埗鐨勫浘鐗囩紦瀛樿浆涓?base64 鍙戠粰鍓嶇缃戦〉锛屾棤闇€鍚戜簯瀛樺偍瀛樼洏
           const base64Str = result.buffer.toString('base64');
           return { success: true, imgDataUrl: `data:image/jpeg;base64,${base64Str}` };
         } catch (err) {
-          console.error('【生成暗门二维码失败】', err);
-          return { success: false, msg: `微信服务拒绝了生码请求，原因为: ${err.message || err.errMsg || JSON.stringify(err)}。可能是因为您的小程序从未发布过任何正式版本。请至少发布一版后再来生成。` };
+          console.error('銆愮敓鎴愭殫闂ㄤ簩缁寸爜澶辫触銆?', err);
+          return { success: false, msg: `寰俊鏈嶅姟鎷掔粷浜嗙敓鐮佽姹傦紝鍘熷洜涓? ${err.message || err.errMsg || JSON.stringify(err)}銆傚彲鑳芥槸鍥犱负鎮ㄧ殑灏忕▼搴忎粠鏈彂甯冭繃浠讳綍姝ｅ紡鐗堟湰銆傝鑷冲皯鍙戝竷涓€鐗堝悗鍐嶆潵鐢熸垚銆?` };
         }
       }
 
-      // 21. 家长扫码激活 VIP（云端持久化）
+      // 21. 瀹堕暱鎵爜婵€娲?VIP锛堜簯绔寔涔呭寲锛?
       case 'activateVIP': {
         const wxContext = cloud.getWXContext();
         const openid = wxContext.OPENID;
-        if (!openid) return { success: false, msg: '无法获取授权信息' };
+        if (!openid) return { success: false, msg: '鏃犳硶鑾峰彇鎺堟潈淇℃伅' };
 
-        // 幂等写入：如果已存在则跳过
+        // 骞傜瓑鍐欏叆锛氬鏋滃凡瀛樺湪鍒欒烦杩?
         const existVip = await db.collection('vip_users').where({ _openid: openid }).get();
         if (existVip.data && existVip.data.length > 0) {
           return { success: true, msg: '已激活', alreadyActive: true };
@@ -777,10 +768,10 @@ exports.main = async (event, context) => {
             activatedAt: Date.now()
           }
         });
-        return { success: true, msg: 'VIP 激活成功' };
+        return { success: true, msg: 'VIP激活成功'};
       }
 
-      // 22. 启动时校验 VIP 状态（云端权威源）
+      // 22. 鍚姩鏃舵牎楠?VIP 鐘舵€侊紙浜戠鏉冨▉婧愶級
       case 'checkVIP': {
         const wxContext = cloud.getWXContext();
         const openid = wxContext.OPENID;
@@ -799,15 +790,15 @@ exports.main = async (event, context) => {
         }
       }
 
-      // 23. 管理员撤销 VIP（退费踢人）
+      // 23. 绠＄悊鍛樻挙閿€ VIP锛堥€€璐硅涪浜猴級
       case 'revokeVIP': {
         const { targetOpenid, role } = payload;
-        if (role !== 'admin') return { success: false, msg: '权限不足：仅管理员可撤销 VIP' };
+        if (role !== 'admin') return { success: false, msg: '鏉冮檺涓嶈冻锛氫粎绠＄悊鍛樺彲鎾ら攢 VIP' };
         if (!targetOpenid) return { success: false, msg: '缺少目标用户 OpenID' };
 
         const vipRecord = await db.collection('vip_users').where({ _openid: targetOpenid }).get();
         if (!vipRecord.data || vipRecord.data.length === 0) {
-          // 旧版用户没有云端记录，直接创建一条"已禁用"记录来阻断云端校验
+          // 鏃х増鐢ㄦ埛娌℃湁浜戠璁板綍锛岀洿鎺ュ垱寤轰竴鏉?宸茬鐢?璁板綍鏉ラ樆鏂簯绔牎楠?
           await db.collection('vip_users').add({
             data: {
               _openid: targetOpenid,
@@ -825,11 +816,11 @@ exports.main = async (event, context) => {
       }
 
       default:
-        return { success: false, msg: '未知的操作类型 (action)' }
+        return { success: false, msg: '未知的操作类型(action)' }
     }
   } catch (err) {
-    console.error('云函数执行报错:', err)
-    // 🛡️ 安全加固：不再向前端泄漏完整的错误对象
-    return { success: false, msg: '服务器内部错误，请联系管理员' }
+    console.error('浜戝嚱鏁版墽琛屾姤閿?', err)
+    // 馃洝锔?瀹夊叏鍔犲浐锛氫笉鍐嶅悜鍓嶇娉勬紡瀹屾暣鐨勯敊璇璞?\n    return { success: false, msg: '服务器内部错误，请联系管理员' }
   }
 }
+
