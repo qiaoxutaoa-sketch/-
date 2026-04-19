@@ -3,10 +3,14 @@
 body {
   margin: 0;
   padding: 0;
-  overflow: hidden; /* To match original saas logic if needed, or original_v1.css already does it */
+  overflow: hidden;
 }
 
-/* Clear all the new stuff that Element Plus injected because original is not Element Plus actually! Wait, the original IS NOT Element Plus!? 
-The original CSS uses a lot of standard class names. 
-If the original is not Element Plus, then Element Plus might conflict. But we will just load original CSS last. 
-*/
+/* 覆盖 original_v1.css 中过于浮夸的毛玻璃阴影 */
+.saas-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+.saas-sidebar {
+  box-shadow: none !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+}

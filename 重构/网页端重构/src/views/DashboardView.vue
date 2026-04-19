@@ -70,18 +70,18 @@
     <!-- Main Content Area: Today Schedule -->
     <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;flex:1 1 0%;min-height:0">
       <!-- 一周排课全景 (FullCalendar Restored) -->
-      <div class="saas-card" style="padding:20px 24px;display:flex;flex-direction:column;min-height:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="saas-card" style="padding:12px 20px;display:flex;flex-direction:column;min-height:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
           <div>
-            <h3 style="margin:0 0 4px;color:var(--gray-800);font-size:18px;font-weight:700">一周排课全景</h3>
-            <p style="margin:0;font-size:13px;color:var(--gray-400)">支持直接拖拽色块以调整班次上课时间段</p>
+            <h3 style="margin:0 0 2px;color:var(--gray-800);font-size:16px;font-weight:700">一周排课全景</h3>
+            <p style="margin:0;font-size:12px;color:var(--gray-400)">支持直接拖拽色块以调整班次上课时间段</p>
           </div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <button class="primary-btn" @click="handleFillThisWeek" style="background:white;border:1px solid var(--primary);color:var(--primary);border-radius:999px;padding:8px 16px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:8px;transition:0.2s">
-              <el-icon><Refresh /></el-icon> 利用班级规律填充本周
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="primary-btn" @click="handleFillThisWeek" style="background:white;border:1px solid var(--primary);color:var(--primary);border-radius:999px;padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;transition:0.2s">
+              <el-icon :size="14"><Refresh /></el-icon> 填充本周
             </button>
-            <button class="primary-btn" @click="handleCopyToNextWeek" style="background:white;border:1px solid var(--gray-200);color:var(--gray-700);border-radius:999px;padding:8px 16px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:8px;transition:0.2s">
-              <el-icon><CopyDocument /></el-icon> 排班至下周
+            <button class="primary-btn" @click="handleCopyToNextWeek" style="background:white;border:1px solid var(--gray-200);color:var(--gray-700);border-radius:999px;padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;transition:0.2s">
+              <el-icon :size="14"><CopyDocument /></el-icon> 排班至下周
             </button>
           </div>
         </div>
@@ -469,25 +469,77 @@ const handleCancelClass = async (event) => {
 }
 
 /* Fix FullCalendar CSS pollution & mismatches */
+/* FullCalendar 工具栏紧凑化 */
+:deep(.fc-toolbar) {
+  padding: 0 !important;
+  margin-bottom: 4px !important;
+  gap: 8px;
+}
+:deep(.fc-toolbar-title) {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+/* 所有按钮统一胶囊形 */
 :deep(.fc-button) {
   background-color: var(--gray-50) !important;
-  color: var(--gray-700) !important;
+  color: var(--gray-600) !important;
   border: 1px solid var(--gray-200) !important;
-  border-radius: 8px !important;
+  border-radius: 999px !important;
   box-shadow: none !important;
   font-weight: 600 !important;
+  font-size: 13px !important;
+  padding: 4px 14px !important;
   text-transform: capitalize !important;
-  transition: 0.2s !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  line-height: 1.6 !important;
 }
 :deep(.fc-button:hover) {
   background-color: var(--gray-100) !important;
   color: var(--gray-900) !important;
 }
-:deep(.fc-button-active) {
-  background-color: var(--primary) !important;
-  color: white !important;
-  border-color: var(--primary) !important;
+:deep(.fc-button:focus) {
+  box-shadow: none !important;
 }
+
+/* < > 导航箭头按钮 */
+:deep(.fc-prev-button),
+:deep(.fc-next-button) {
+  padding: 4px 10px !important;
+}
+
+/* iOS 风格分段控件：Month / Week 切换器 */
+:deep(.fc-button-group) {
+  background: var(--gray-100) !important;
+  border-radius: 999px !important;
+  padding: 3px !important;
+  border: none !important;
+  position: relative;
+  display: inline-flex !important;
+  gap: 0 !important;
+}
+:deep(.fc-button-group > .fc-button) {
+  border: none !important;
+  background: transparent !important;
+  color: var(--gray-500) !important;
+  border-radius: 999px !important;
+  padding: 4px 16px !important;
+  margin: 0 !important;
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+:deep(.fc-button-group > .fc-button.fc-button-active) {
+  background: white !important;
+  color: var(--gray-800) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+:deep(.fc-button-group > .fc-button:not(:first-child)) {
+  margin-left: 0 !important;
+}
+
+/* 课程事件块 */
 :deep(.fc-v-event) {
   border-radius: 6px;
   border: 1px solid rgba(0,0,0,0.05);
