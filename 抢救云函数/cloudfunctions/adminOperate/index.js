@@ -646,6 +646,27 @@ exports.main = async (event, context) => {
       }
 
       // 馃洝锔?15. 鍒涘缓/缂栬緫鐝骇 (BUG-3淇锛氬墠绔笉鍐嶇洿鍐?classes)
+
+      // 15-A. 网页端直接调用的新建班级
+      case 'addClass': {
+        const { classData: addClsData } = payload;
+        addClsData.createdTimestamp = Date.now();
+        delete addClsData._id;
+        delete addClsData._openid;
+        const addClsRes = await db.collection('classes').add({ data: addClsData });
+        return { success: true, msg: '新班级创建成功', id: addClsRes._id };
+      }
+
+      // 15-B. 网页端直接调用的更新班级
+      case 'updateClass': {
+        const { classId: updClsId, classData: updClsData } = payload;
+        if (!updClsId) return { success: false, msg: '缺少班级ID' };
+        delete updClsData._id;
+        delete updClsData._openid;
+        await db.collection('classes').doc(updClsId).update({ data: updClsData });
+        return { success: true, msg: '班级信息已更新' };
+      }
+
       case 'manageClass': {
         const { subAction: clsSubAction, classId, classData } = payload;
         if (clsSubAction === 'add') {
