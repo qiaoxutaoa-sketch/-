@@ -296,7 +296,9 @@ const calendarOptions = computed(() => {
     let startT = '10:00'
     let endT = '11:30'
     if (c.timeSpan && c.timeSpan.includes('-')) {
-      [startT, endT] = c.timeSpan.split('-').map(s => s.trim())
+      [startT, endT] = c.timeSpan.split('-').map(s => {
+        return s.trim().split(':').map(p => p.padStart(2, '0')).join(':')
+      })
     }
     
     const baseClass = classes.value.find(cls => cls._id === c.classId) || {}
