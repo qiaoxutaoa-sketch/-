@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 // 路由守卫鉴权标识符，通常在 login 成功后写入 localStorage，如 _callerPhone
-const isAuthenticated = () => !!localStorage.getItem('_callerPhone')
+const isAuthenticated = () => !!localStorage.getItem('_callerPhone') && !!localStorage.getItem('_callerPassword')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

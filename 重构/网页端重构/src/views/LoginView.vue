@@ -59,20 +59,44 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { User, Lock, View, Hide } from '@element-plus/icons-vue'
+import { callAdminOperate } from '../utils/api'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
-const username = ref('16678702390')
-const password = ref('123456')
+const username = ref('')
+const password = ref('')
 const passwordVisible = ref(false)
 const rememberMe = ref(true)
 const loading = ref(false)
 
-const handleLogin = () => {
+const handleLogin = async () => {
+  if (!username.value || !password.value) {
+    ElMessage.warning('请输入账号和密码')
+    return
+  }
+  
   loading.value = true
-  setTimeout(() => {
+  try {
+    const res = await callAdminOperate('login', { phone: username.value, password: password.value })
+    if (res && res.success) {
+      ElMessage.success('欢迎登录，' + (res.user?.name || '管理员'))
+      // Inject the caller credentials so future API calls pass the role check
+      localStorage.setItem('_callerPhone', username.value)
+      localStorage.setItem('_callerPassword', password.value)
+      localStorage.setItem('_userRole', res.user?.role || 'teacher')
+      localStorage.setItem('_callerName', res.user?.name || '管理员')
+      
+      // Navigate to dashboard
+      router.push('/dashboard')
+    } else {
+      ElMessage.error(res?.msg || '账号或密码错误，请重试！')
+    }
+  } catch (err) {
+    console.error(err)
+    ElMessage.error('云环境连接异常，请检查网络环境或环境白名单设定')
+  } finally {
     loading.value = false
-    router.push('/dashboard')
-  }, 800)
+  }
 }
 </script>
 

@@ -9,6 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "acorn": "^8.16.0",
+    "decomment": "^0.9.5",
+    "iconv-lite": "^0.7.2",
     "wx-server-sdk": "~2.6.3"
   },
   "devDependencies": {

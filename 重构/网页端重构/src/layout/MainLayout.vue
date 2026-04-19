@@ -16,21 +16,21 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-v-4434df1b><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" data-v-4434df1b></path><circle cx="9" cy="7" r="4" data-v-4434df1b></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87" data-v-4434df1b></path><path d="M16 3.13a4 4 0 0 1 0 7.75" data-v-4434df1b></path></svg>
             学员库
           </li>
-          <li data-v-4434df1b :class="{ active: route.path === '/teachers' }" @click="router.push('/teachers')" style="cursor:pointer">
+          <li v-if="isAdmin" data-v-4434df1b :class="{ active: route.path === '/teachers' }" @click="router.push('/teachers')" style="cursor:pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-v-4434df1b><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" data-v-4434df1b></path><circle cx="8.5" cy="7" r="4" data-v-4434df1b></circle><line x1="20" y1="8" x2="20" y2="14" data-v-4434df1b></line><line x1="23" y1="11" x2="17" y2="11" data-v-4434df1b></line></svg>
             教师库
           </li>
-          <li data-v-4434df1b :class="{ active: route.path === '/courses' }" @click="router.push('/courses')" style="cursor:pointer">
+          <li v-if="isAdmin" data-v-4434df1b :class="{ active: route.path === '/courses' }" @click="router.push('/courses')" style="cursor:pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-v-4434df1b><rect x="3" y="4" width="18" height="18" rx="2" ry="2" data-v-4434df1b></rect><line x1="16" y1="2" x2="16" y2="6" data-v-4434df1b></line><line x1="8" y1="2" x2="8" y2="6" data-v-4434df1b></line><line x1="3" y1="10" x2="21" y2="10" data-v-4434df1b></line></svg>
-            排课管理
+            班级管理
           </li>
           <li data-v-4434df1b :class="{ active: route.path === '/records' }" @click="router.push('/records')" style="cursor:pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-v-4434df1b><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" data-v-4434df1b></path><polyline points="14 2 14 8 20 8" data-v-4434df1b></polyline><line x1="16" y1="13" x2="8" y2="13" data-v-4434df1b></line><line x1="16" y1="17" x2="8" y2="17" data-v-4434df1b></line><polyline points="10 9 9 9 8 9" data-v-4434df1b></polyline></svg>
             消课记录
           </li>
         </ul>
-        <div data-v-4434df1b class="nav-label" style="margin-top:24px">MANAGEMENT</div>
-        <ul data-v-4434df1b class="saas-nav">
+        <div v-if="isAdmin" data-v-4434df1b class="nav-label" style="margin-top:24px">MANAGEMENT</div>
+        <ul v-if="isAdmin" data-v-4434df1b class="saas-nav">
           <li data-v-4434df1b :class="{ active: route.path === '/business' }" @click="router.push('/business')" style="cursor:pointer">
             <svg data-v-4434df1b xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline data-v-4434df1b points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
             经营数据
@@ -61,9 +61,16 @@
 
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { checkIsAdmin } from '../utils/api'
 
 const router = useRouter()
 const route = useRoute()
+const isAdmin = ref(false)
+
+onMounted(() => {
+  isAdmin.value = checkIsAdmin()
+})
 
 const handleLogout = () => {
     localStorage.removeItem('_callerPhone');
