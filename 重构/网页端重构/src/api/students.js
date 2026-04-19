@@ -1,8 +1,8 @@
 import { app, callAdminOperate } from '../utils/api'
 
 export async function fetchStudents(skip = 0, limit = 50) {
-  const db = app.database()
-  const res = await db.collection('students').orderBy('enrollDate', 'desc').skip(skip).limit(limit).get()
+  const res = await callAdminOperate('fetchStudents', { skip, limit })
+  if (!res.success) throw new Error(res.msg)
   return res.data || []
 }
 
@@ -31,8 +31,8 @@ export async function deleteStudent(studentId) {
 }
 
 export async function fetchApplications() {
-  const db = app.database()
-  const res = await db.collection('applications').where({ status: 'pending' }).orderBy('timestamp', 'desc').get()
+  const res = await callAdminOperate('fetchApplications')
+  if (!res.success) throw new Error(res.msg)
   return res.data || []
 }
 

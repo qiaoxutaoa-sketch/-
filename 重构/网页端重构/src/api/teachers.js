@@ -2,7 +2,7 @@ import { app, callAdminOperate } from '../utils/api'
 import { ElMessageBox } from 'element-plus'
 
 const getAdminPwd = async () => {
-  let pwd = localStorage.getItem('adminPassword_cache')
+  let pwd = sessionStorage.getItem('adminPassword_cache')
   if (!pwd) {
     const { value } = await ElMessageBox.prompt('该操作属于系统核心高危权限，请输入超管二次密码（非登录密码）以解锁操作', '安全验证', {
       inputType: 'password',
@@ -10,14 +10,14 @@ const getAdminPwd = async () => {
       cancelButtonText: '取消'
     })
     pwd = value
-    localStorage.setItem('adminPassword_cache', pwd)
+    sessionStorage.setItem('adminPassword_cache', pwd)
   }
   return pwd
 }
 
 export async function fetchTeachers(skip = 0, limit = 50) {
-  const db = app.database()
-  const res = await db.collection('teachers').orderBy('_id', 'desc').skip(skip).limit(limit).get()
+  const res = await callAdminOperate('fetchTeachers', { skip, limit })
+  if (!res.success) throw new Error(res.msg)
   return res.data || []
 }
 
@@ -30,7 +30,7 @@ export async function addTeacher(teacherItem) {
     role: 'admin' 
   })
   if (!res.success) {
-    if (res.msg.includes('密码')) localStorage.removeItem('adminPassword_cache')
+    if (res.msg.includes('密码')) sessionStorage.removeItem('adminPassword_cache')
     throw new Error(res.msg)
   }
   return res
@@ -45,7 +45,7 @@ export async function deleteTeacher(teacherItem) {
     role: 'admin'
   })
   if (!res.success) {
-    if (res.msg.includes('密码')) localStorage.removeItem('adminPassword_cache')
+    if (res.msg.includes('密码')) sessionStorage.removeItem('adminPassword_cache')
     throw new Error(res.msg)
   }
   return res
@@ -60,7 +60,7 @@ export async function updateTeacher(teacherItem) {
     role: 'admin'
   })
   if (!res.success) {
-    if (res.msg.includes('密码')) localStorage.removeItem('adminPassword_cache')
+    if (res.msg.includes('密码')) sessionStorage.removeItem('adminPassword_cache')
     throw new Error(res.msg)
   }
   return res
@@ -75,7 +75,7 @@ export async function resetTeacherPassword(teacherItem, manualPwd) {
     role: 'admin'
   })
   if (!res.success) {
-    if (res.msg.includes('密码')) localStorage.removeItem('adminPassword_cache')
+    if (res.msg.includes('密码')) sessionStorage.removeItem('adminPassword_cache')
     throw new Error(res.msg)
   }
   return res

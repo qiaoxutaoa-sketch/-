@@ -112,7 +112,15 @@ exports.main = async (event, context) => {
           const record = records[i]
           const hours = Number(record.consumeHours) || 1
           
+          
           try {
+            // 根据 P2-3 特殊经营需求：允许欠课扣除为负数，移除余额不足直接跳过的校验
+            const stuDataRes = await db.collection('students').doc(record.studentId).get()
+            if (!stuDataRes.data) {
+              console.warn(`学员 ${record.studentName} 数据缺失，跳过消课`)
+              continue
+            }
+            
             // 鎻掑叆娑堣璁板綍
             await db.collection('class_records').add({
               data: {
@@ -349,6 +357,7 @@ exports.main = async (event, context) => {
 
       // 7.5 更新单节实体课的日期/时间（日历拖拽）
       case 'updateSession': {
+        if (callerRole !== 'admin') return { success: false, msg: '越权操作：仅管理员可用' };
         const { sessionId, date: sesDate, timeSpan } = payload;
         if (!sessionId) return { success: false, msg: '缺少课程ID' };
         const sesUpdate = {};
@@ -360,6 +369,7 @@ exports.main = async (event, context) => {
 
       // 处理模板日历取消排课
       case 'cancelTemplateBlock': {
+        if (callerRole !== 'admin') return { success: false, msg: '越权操作：仅管理员可用' };
         const { classId, className, date, timeSpan } = payload;
         if (!classId || !date) return { success: false, msg: '缺少参数' };
         await db.collection('class_sessions').add({
@@ -377,6 +387,7 @@ exports.main = async (event, context) => {
 
       // 7.6 鍒犻櫎鍗曡妭瀹炰綋璇?
       case 'deleteSession': {
+        if (callerRole !== 'admin') return { success: false, msg: '越权操作：仅管理员可用' };
         const { sessionId } = payload;
         if (!sessionId) return { success: false, msg: '缺少课程ID' };
         await db.collection('class_sessions').doc(sessionId).remove();
@@ -385,6 +396,7 @@ exports.main = async (event, context) => {
 
       // 7.7 娣诲姞鍗曡妭涓存椂璇?鍔犺 (鐐瑰嚮鏃ュ巻绌虹櫧鏍?
       case 'addSession': {
+        if (callerRole !== 'admin') return { success: false, msg: '越权操作：仅管理员可用' };
         const { classId, className, date, timeSpan } = payload;
         if (!classId || !date || !timeSpan) return { success: false, msg: '缺少排课关键参数' };
         await db.collection('class_sessions').add({
@@ -586,11 +598,48 @@ exports.main = async (event, context) => {
 
       // 馃洝锔?13. 鏁欏笀绔偣璇勫唴瀹瑰啓鍥?(鍓嶇涓嶅啀鐩村啓 class_records)
       case 'updateReview': {
+        if (callerRole !== 'admin') return { success: false, msg: '越权操作：仅管理员可用' };
         const { recordId, comment, artwork } = payload;
         if (!recordId) return { success: false, msg: '缺少消课记录ID' };
+        let finalArtwork = [];
+        if (Array.isArray(artwork)) {
+          for (let i = 0; i < artwork.length; i++) {
+            const item = artwork[i];
+            if (typeof item === 'string' && item.startsWith('data:image/')) {
+              try {
+                const b64Data = item.replace(/^data:image\/\w+;base64,/, '');
+                const buffer = Buffer.from(b64Data, 'base64');
+                const ext = item.match(/^data:image\/(\w+);base64,/)?.[1] || 'jpg';
+                const cloudPath = 'reviews/' + Date.now() + '_' + Math.floor(Math.random()*1000) + '.' + ext;
+                const uploadRes = await cloud.uploadFile({ cloudPath, fileContent: buffer });
+                const urlRes = await cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
+                if (urlRes.fileList && urlRes.fileList.length > 0 && urlRes.fileList[0].tempFileURL) {
+                  finalArtwork.push(urlRes.fileList[0].tempFileURL);
+                } else {
+                  finalArtwork.push(uploadRes.fileID);
+                }
+              } catch(e) { console.error(e) }
+            } else if (item) { finalArtwork.push(item); }
+          }
+        } else if (typeof artwork === 'string' && artwork.startsWith('data:image/')) {
+           try {
+             const b64Data = artwork.replace(/^data:image\/\w+;base64,/, '');
+             const buffer = Buffer.from(b64Data, 'base64');
+             const ext = artwork.match(/^data:image\/(\w+);base64,/)?.[1] || 'jpg';
+             const uploadRes = await cloud.uploadFile({ cloudPath: 'reviews/' + Date.now() + '_' + Math.floor(Math.random()*1000) + '.' + ext, fileContent: buffer });
+             const urlRes = await cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
+             if (urlRes.fileList && urlRes.fileList.length > 0 && urlRes.fileList[0].tempFileURL) {
+               finalArtwork = [urlRes.fileList[0].tempFileURL];
+             } else {
+               finalArtwork = [uploadRes.fileID];
+             }
+           } catch(e) { console.error(e) }
+        } else if (artwork !== undefined) {
+          finalArtwork = artwork;
+        }
         const updateData = { reviewTimestamp: Date.now() };
         if (comment !== undefined) updateData.comment = comment;
-        if (artwork !== undefined) updateData.artwork = artwork;
+        if (artwork !== undefined) updateData.artwork = finalArtwork;
         await db.collection('class_records').doc(recordId).update({ data: updateData });
         return { success: true, msg: '点评已保存' };
       }
@@ -639,7 +688,7 @@ exports.main = async (event, context) => {
         const { studentId, updateData } = payload;
         if (!studentId) return { success: false, msg: '缺少学生ID' };
         // 瀹夊叏杩囨护锛氬彧鍏佽鏇存柊杩欎簺瀛楁
-        const allowed = ['name', 'gender', 'age', 'phone', 'address', 'course'];
+        const allowed = ['name', 'gender', 'age', 'phone', 'address', 'course', 'remain', 'totalHours', 'lastRenewalDate'];
         const safeData = {};
         allowed.forEach(k => { if (updateData[k] !== undefined) safeData[k] = updateData[k]; });
         await db.collection('students').doc(studentId).update({ data: safeData });
@@ -650,6 +699,7 @@ exports.main = async (event, context) => {
 
       // 15-A. 网页端直接调用的新建班级
       case 'addClass': {
+        if (callerRole !== 'admin') return { success: false, msg: '越权操作：仅管理员可用' };
         const { classData: addClsData } = payload;
         addClsData.createdTimestamp = Date.now();
         delete addClsData._id;
@@ -660,6 +710,7 @@ exports.main = async (event, context) => {
 
       // 15-B. 网页端直接调用的更新班级
       case 'updateClass': {
+        if (callerRole !== 'admin') return { success: false, msg: '越权操作：仅管理员可用' };
         const { classId: updClsId, classData: updClsData } = payload;
         if (!updClsId) return { success: false, msg: '缺少班级ID' };
         delete updClsData._id;
@@ -669,6 +720,7 @@ exports.main = async (event, context) => {
       }
 
       case 'manageClass': {
+        if (callerRole !== 'admin') return { success: false, msg: '越权操作：仅管理员可用' };
         const { subAction: clsSubAction, classId, classData } = payload;
         if (clsSubAction === 'add') {
           classData.createdTimestamp = Date.now();
@@ -722,6 +774,7 @@ exports.main = async (event, context) => {
 
       // 18. 澶勭悊璇峰亣瀹℃壒 (缁曡繃鍓嶇瀹夊叏瑙勫垯鐩村啓闈欓粯澶辫触Bug)
       case 'manageLeave': {
+        if (callerRole !== 'admin') return { success: false, msg: '越权操作：仅管理员可用' };
         const { leaveId, status } = payload;
         if (!leaveId || !status) return { success: false, msg: '缺少必要参数' };
         await db.collection('leaves').doc(leaveId).update({
@@ -838,6 +891,60 @@ exports.main = async (event, context) => {
         });
         return { success: true, msg: 'VIP 已撤销，该用户下次打开将回到基础模式' };
       }
+
+      
+      // ----- Phase 2 Proxy Fetches -----
+      case 'fetchTeachers': {
+        const { skip = 0, limit = 50 } = payload;
+        const res = await db.collection('teachers').orderBy('_id', 'desc').skip(skip).limit(limit).get();
+        const data = (res.data || []).map(t => {
+          delete t.password;
+          return t;
+        });
+        return { success: true, data };
+      }
+      
+      case 'fetchStudents': {
+        const { skip = 0, limit = 50 } = payload;
+        const res = await db.collection('students').orderBy('enrollDate', 'desc').skip(skip).limit(limit).get();
+        return { success: true, data: res.data || [] };
+      }
+      
+      case 'fetchApplications': {
+        const res = await db.collection('applications').where({ status: 'pending' }).orderBy('timestamp', 'desc').get();
+        return { success: true, data: res.data || [] };
+      }
+      
+      case 'fetchClasses': {
+        const { skip = 0, limit = 100 } = payload;
+        const res = await db.collection('classes').orderBy('createdTimestamp', 'desc').skip(skip).limit(limit).get();
+        return { success: true, data: res.data || [] };
+      }
+      
+      case 'fetchClassSessions': {
+        const { startDateStr, endDateStr, classId } = payload;
+        let query = { date: _.gte(startDateStr).and(_.lte(endDateStr)) };
+        if (classId) {
+          query.classId = classId;
+        }
+        const res = await db.collection('class_sessions').where(query).limit(500).get();
+        return { success: true, data: res.data || [] };
+      }
+      
+      case 'fetchRecords': {
+        const { skip = 0, limit = 200 } = payload;
+        const res = await db.collection('class_records').orderBy('timestamp', 'desc').skip(skip).limit(limit).get();
+        return { success: true, data: res.data || [] };
+      }
+      
+      case 'fetchRemarkOptions': {
+        const res = await db.collection('settings').where({ type: 'consume_opts' }).get();
+        if (res.data && res.data.length > 0 && res.data[0].remarkOpts) {
+          return { success: true, data: res.data[0].remarkOpts };
+        }
+        return { success: true, data: ['日常课程', '比赛指导', '考级集训', '体验课', '寒暑假集训'] };
+      }
+      // ---------------------------------
 
       default:
         return { success: false, msg: '未知的操作类型(action)' }

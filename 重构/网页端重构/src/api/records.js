@@ -1,8 +1,8 @@
-﻿import { app, callAdminOperate } from '../utils/api'
+import { app, callAdminOperate } from '../utils/api'
 
 export async function fetchRecords(skip = 0, limit = 100) {
-  const db = app.database()
-  const res = await db.collection('class_records').orderBy('timestamp', 'desc').skip(skip).limit(limit).get()
+  const res = await callAdminOperate('fetchRecords', { skip, limit })
+  if (!res.success) throw new Error(res.msg)
   return res.data || []
 }
 

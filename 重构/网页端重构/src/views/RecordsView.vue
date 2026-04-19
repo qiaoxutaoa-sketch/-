@@ -1,7 +1,7 @@
 <template>
   <div style="padding-bottom: 24px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-      <h2 style="margin:0px;font-size:24px;font-weight:800;color:var(--gray-800);letter-spacing:-0.5px">消课与画作点评</h2>
+      <h2 style="margin:0px;font-size:24px;font-weight:800;color:var(--gray-800);letter-spacing:-0.5px">点评记录</h2>
       <div class="toolbar" style="display:flex;align-items:center;gap:16px">
         <select v-model="filterType" style="padding:6px 12px;border-radius:6px;border:1px solid rgb(226,232,240);color:var(--gray-700);font-size:14px;background:white;outline:none;cursor:pointer">
           <option value="all">🌟 所有点评</option>
@@ -48,19 +48,47 @@
             </td>
             <td>{{ record.teacher }}</td>
             <td style="color:rgb(239,68,68);font-weight:bold">-{{ record.consume || 1 }} 节</td>
-            <td class="address-text" :title="record.comment" style="max-width:200px">{{ record.comment || '暂无点评' }}</td>
+            <td style="max-width:200px">
+              <div v-if="record.comment" style="display: flex; align-items: center; gap: 6px;">
+                <span class="address-text" :title="record.comment" style="flex: 1; min-width: 0;">
+                  {{ record.comment }}
+                </span>
+                <el-button 
+                  v-if="record.comment.length > 15" 
+                  type="primary" 
+                  link 
+                  size="small" 
+                  @click="showFullComment(record.comment)"
+                  style="flex-shrink: 0; font-size: 12px; padding: 0;"
+                >
+                  全部
+                </el-button>
+              </div>
+              <span v-else style="color: #94a3b8; font-size: 13px;">暂无点评</span>
+            </td>
             <td>
               <template v-if="Array.isArray(record.artwork) && record.artwork.length > 0">
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                  <a v-for="(url, idx) in record.artwork" :key="idx" :href="url" target="_blank">
-                    <img :src="url" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; cursor: zoom-in; flex-shrink: 0;" />
-                  </a>
+                  <el-image 
+                    v-for="(url, idx) in record.artwork" 
+                    :key="idx" 
+                    :src="url" 
+                    :preview-src-list="record.artwork"
+                    :initial-index="idx"
+                    preview-teleported
+                    style="width: 48px; height: 48px; border-radius: 6px; border: 1px solid #e2e8f0; flex-shrink: 0;"
+                    fit="cover"
+                  />
                 </div>
               </template>
               <template v-else-if="typeof record.artwork === 'string' && record.artwork.trim() !== ''">
-                <a :href="record.artwork" target="_blank">
-                  <img :src="record.artwork" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; cursor: zoom-in;" />
-                </a>
+                  <el-image 
+                    :src="record.artwork" 
+                    :preview-src-list="[record.artwork]"
+                    preview-teleported
+                    style="width: 48px; height: 48px; border-radius: 6px; border: 1px solid #e2e8f0;"
+                    fit="cover"
+                  />
               </template>
               <span v-else style="color: #94a3b8; font-size: 12px;">未上传</span>
             </td>
@@ -80,7 +108,7 @@
             </td>
           </tr>
           <tr v-if="filteredRecords.length === 0 && !loading">
-             <td colspan="9" style="text-align: center; padding: 40px; color: #94a3b8">没有找到相关消课记录</td>
+             <td colspan="9" style="text-align: center; padding: 40px; color: #94a3b8">没有找到相关点评记录</td>
           </tr>
         </tbody>
       </table>
@@ -112,6 +140,18 @@ const currentReviewRecord = ref(null)
 const filterType = ref('all')
 const onlyUnreviewed = ref(false)
 const isAdmin = ref(false)
+
+const showFullComment = (comment) => {
+  ElMessageBox.alert(
+    `<div style="line-height: 1.6; font-size: 14px; max-height: 50vh; overflow-y: auto;">${comment.replace(/\n/g, '<br/>')}</div>`, 
+    '点评详情', 
+    {
+      confirmButtonText: '关闭',
+      dangerouslyUseHTMLString: true,
+      customClass: 'glass-dialog'
+    }
+  )
+}
 
 const loadData = async () => {
   loading.value = true

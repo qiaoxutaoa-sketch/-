@@ -26,7 +26,7 @@
           </li>
           <li data-v-4434df1b :class="{ active: route.path === '/records' }" @click="router.push('/records')" style="cursor:pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-v-4434df1b><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" data-v-4434df1b></path><polyline points="14 2 14 8 20 8" data-v-4434df1b></polyline><line x1="16" y1="13" x2="8" y2="13" data-v-4434df1b></line><line x1="16" y1="17" x2="8" y2="17" data-v-4434df1b></line><polyline points="10 9 9 9 8 9" data-v-4434df1b></polyline></svg>
-            消课记录
+            点评记录
           </li>
         </ul>
         <div v-if="isAdmin" data-v-4434df1b class="nav-label" style="margin-top:24px">MANAGEMENT</div>
@@ -34,10 +34,6 @@
           <li data-v-4434df1b :class="{ active: route.path === '/business' }" @click="router.push('/business')" style="cursor:pointer">
             <svg data-v-4434df1b xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline data-v-4434df1b points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
             经营数据
-          </li>
-          <li data-v-4434df1b style="opacity: 0.5">
-            <svg data-v-4434df1b xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path data-v-4434df1b d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            宣传大盘
           </li>
           <li data-v-4434df1b :class="{ active: route.path === '/secret' }" @click="router.push('/secret')" style="cursor:pointer">
             <svg data-v-4434df1b xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path data-v-4434df1b d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -73,7 +69,8 @@ onMounted(() => {
 })
 
 const handleLogout = () => {
-    localStorage.removeItem('_callerPhone');
+    localStorage.clear();
+    sessionStorage.clear();
     router.push('/login');
 }
 </script>

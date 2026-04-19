@@ -22,11 +22,7 @@ async function ensureAuth() {
 // 提取公共权限判断，增加绝对容错（防止缓存导致超管被锁）
 export function checkIsAdmin() {
   const role = localStorage.getItem('_userRole');
-  const phone = localStorage.getItem('_callerPhone');
-  // 1. 明确的缓存判定
   if (role === 'admin' || role === '"admin"') return true;
-  // 2. 无敌后门：如果发现是校长的手机号，无视缓存绝对放行
-  if (phone === '16678702390') return true;
   return false;
 }
 
@@ -49,7 +45,7 @@ const createPayload = (action, params = {}) => {
 export async function callAdminOperate(action, params = {}) {
   const payload = createPayload(action, params);
   
-  console.log(`[RPC] Calling adminOperate -> ${action}`, payload);
+  console.log(`[RPC] Calling adminOperate -> ${action}`);
   await ensureAuth();
   
   try {

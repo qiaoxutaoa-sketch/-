@@ -30,7 +30,14 @@
               
               <!-- 1. 已存云端图片 -->
               <div v-for="(url, idx) in form.artwork" :key="'cloud-'+idx" style="position: relative; width: 64px; height: 64px;">
-                <img :src="url" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--gray-200);" />
+                <el-image 
+                  :src="url" 
+                  :preview-src-list="form.artwork"
+                  :initial-index="idx"
+                  preview-teleported
+                  style="width: 100%; height: 100%; border-radius: 8px; border: 1px solid var(--gray-200);"
+                  fit="cover"
+                />
                 <div @click="removeArtwork(idx)" style="position: absolute; top: -6px; right: -6px; background: white; color: var(--danger); border-radius: 50%; cursor: pointer; padding: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;">
                   <el-icon><Close /></el-icon>
                 </div>
@@ -157,33 +164,53 @@ const handleFileSelect = (uploadFile) => {
   })
 }
 
+const compressImageToBase64 = (file, maxWidth = 1000) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (event) => {
+      const img = new Image()
+      img.src = event.target.result
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let width = img.width
+        let height = img.height
+        
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width)
+          width = maxWidth
+        }
+        canvas.width = width
+        canvas.height = height
+        
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, width, height)
+        
+        const base64 = canvas.toDataURL('image/jpeg', 0.8)
+        resolve(base64)
+      }
+      img.onerror = (e) => reject(e)
+    }
+    reader.onerror = (e) => reject(e)
+  })
+}
+
 const submit = async () => {
   if (!props.record || !props.record._id) return
 
   loading.value = true
   try {
-    // 1. Upload pending images first
+    // 1. Convert pending images to base64
     if (pendingFiles.value.length > 0) {
       for (const pf of pendingFiles.value) {
         const file = pf.raw
-        const extension = file.name.split('.').pop() || 'png'
-        const cloudPath = `reviews/${Date.now()}_${Math.floor(Math.random() * 1000)}.${extension}`
-        
         try {
-          const result = await app.uploadFile({ cloudPath, filePath: file })
-          
-          // Secure cross-platform compliance: Mini programs sometimes fail to render raw cloud:// IDs across divergent components. Always pull robust HTTPS.
-          const tempUrlRes = await app.getTempFileURL({ fileList: [result.fileID] })
-          let secureUrl = result.fileID
-          if (tempUrlRes.fileList && tempUrlRes.fileList.length > 0 && tempUrlRes.fileList[0].tempFileURL) {
-            secureUrl = tempUrlRes.fileList[0].tempFileURL
-          }
-          
+          const base64Str = await compressImageToBase64(file)
           if (!form.value.artwork) form.value.artwork = []
-          form.value.artwork.push(secureUrl)
+          form.value.artwork.push(base64Str)
         } catch (uploadErr) {
-          console.error(uploadErr)
-          ElMessage.error('图片传输至服务器失败，部分点评可能未保存完整图片')
+          console.error('Image compression failed:', uploadErr)
+          ElMessage.error('图片处理失败，部分点评可能未保存完整图片')
         }
       }
     }

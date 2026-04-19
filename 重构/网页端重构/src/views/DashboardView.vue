@@ -24,7 +24,7 @@
     </div>
 
     <!-- Data Overview Widgets -->
-    <div style="flex-shrink:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;margin-bottom:24px">
+    <div style="flex-shrink:0;display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:24px;margin-bottom:24px">
       <!-- 今日排课 -->
       <div class="saas-card" style="display:flex;align-items:center;gap:20px;cursor:pointer">
         <div style="width:56px;height:56px;border-radius:16px;background:rgba(99,102,241,0.1);color:var(--primary);display:flex;align-items:center;justify-content:center">
@@ -61,6 +61,7 @@
           <el-icon :size="28"><DataAnalysis /></el-icon>
         </div>
         <div>
+
           <div style="font-size:13px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">本月营收记录</div>
           <div style="font-size:28px;font-weight:800;color:var(--gray-800);line-height:1">{{ monthRecordsCount }} <span style="font-size:14px;font-weight:500;color:var(--gray-400)">次实耗记录</span></div>
         </div>
@@ -68,9 +69,9 @@
     </div>
 
     <!-- Main Content Area: Today Schedule -->
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;flex:1 1 0%;min-height:0">
+    <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:24px;flex:1 1 0%;min-height:0">
       <!-- 一周排课全景 (FullCalendar Restored) -->
-      <div class="saas-card" style="padding:12px 20px;display:flex;flex-direction:column;min-height:0;">
+      <div class="saas-card" style="grid-column: span 3; padding:12px 20px;display:flex;flex-direction:column;min-height:0;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
           <div>
             <h3 style="margin:0 0 2px;color:var(--gray-800);font-size:16px;font-weight:700">一周排课全景</h3>
@@ -91,7 +92,7 @@
       </div>
 
       <!-- 今日出勤待办 -->
-      <div class="saas-card" style="padding:20px 24px;display:flex;flex-direction:column">
+      <div class="saas-card" style="grid-column: span 1; padding:20px 24px;display:flex;flex-direction:column">
         <h3 style="margin:0 0 16px;color:var(--gray-800);font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px">
           <el-icon color="var(--primary)"><Checked /></el-icon> 今日待办出勤 
         </h3>
@@ -105,7 +106,9 @@
                 </span>
               </div>
             </div>
-            <button class="primary-btn" @click="handleCheckIn(cls)" style="width:100%;border-radius:8px;padding:6px;font-size:12px;font-weight:600;background:var(--primary);color:white;border:none;cursor:pointer">去消课中心</button>
+            <button v-if="cls.status !== 'consumed'" class="primary-btn" @click="handleCheckIn(cls)" style="width:100%;border-radius:8px;padding:6px;font-size:12px;font-weight:600;background:var(--primary);color:white;border:none;cursor:pointer">去消课中心</button>
+            <button v-else-if="isClassAllReviewed(cls)" class="primary-btn" @click="$router.push('/records')" style="width:100%;border-radius:8px;padding:6px;font-size:12px;font-weight:600;background:var(--gray-200);color:var(--gray-800);border:none;cursor:pointer">查看点评记录</button>
+            <button v-else class="primary-btn" @click="handleOpenCommentCenter(cls)" style="width:100%;border-radius:8px;padding:6px;font-size:12px;font-weight:600;background:var(--warning);color:white;border:none;cursor:pointer">去补写点评</button>
           </li>
           <li v-if="todayClasses.length === 0" style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;">今天没有需要负责的班级</li>
         </ul>
@@ -122,6 +125,13 @@
     <ClassConsumeCenterDialog
       v-model="showConsumeCenterDialog"
       :event-data="activeEventData"
+      @refresh="loadData"
+    />
+
+    <ClassCommentCenterDialog
+      v-model="showCommentCenterDialog"
+      :class-session="activeCommentClassSession"
+      :all-records="records"
       @refresh="loadData"
     />
   </div>
@@ -145,6 +155,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction' // Need this for clicking events!
 import ClassScheduleDetailsDialog from './components/ClassScheduleDetailsDialog.vue'
 import ClassConsumeCenterDialog from './components/ClassConsumeCenterDialog.vue'
+import ClassCommentCenterDialog from './components/ClassCommentCenterDialog.vue'
 
 const router = useRouter()
 const loading = ref(true)
@@ -156,6 +167,9 @@ const isAdminRole = ref(false)
 const showClassDetailsDialog = ref(false)
 const showConsumeCenterDialog = ref(false)
 const activeEventData = ref(null)
+
+const showCommentCenterDialog = ref(false)
+const activeCommentClassSession = ref(null)
 
 const students = ref([])
 const classSessions = ref([])
@@ -210,62 +224,22 @@ onMounted(() => {
   isAdminRole.value = checkIsAdmin()
   loadData()
 
-  // iOS 风格分段控件：注入滑块指示器
-  setTimeout(() => initSegmentedSlider(), 500)
+  // Using Pure CSS for Segmented Control Animation on the Calendar Toolbar
 })
-
-/** 注入 iOS 风格滑块到 FullCalendar 的 Month/Week 按钮组 */
-const initSegmentedSlider = () => {
-  const group = document.querySelector('.fc-button-group')
-  if (!group || group.querySelector('.ios-slider')) return
-
-  const slider = document.createElement('div')
-  slider.className = 'ios-slider'
-  Object.assign(slider.style, {
-    position: 'absolute',
-    top: '3px',
-    height: 'calc(100% - 6px)',
-    background: 'white',
-    borderRadius: '999px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08)',
-    transition: 'left 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1)',
-    zIndex: '0',
-    pointerEvents: 'none'
-  })
-  group.style.position = 'relative'
-  group.insertBefore(slider, group.firstChild)
-
-  Array.from(group.querySelectorAll('.fc-button')).forEach(btn => {
-    btn.style.position = 'relative'
-    btn.style.zIndex = '1'
-  })
-
-  const updateSlider = () => {
-    const activeBtn = group.querySelector('.fc-button-active')
-    if (!activeBtn) return
-    const groupRect = group.getBoundingClientRect()
-    const btnRect = activeBtn.getBoundingClientRect()
-    slider.style.left = (btnRect.left - groupRect.left) + 'px'
-    slider.style.width = btnRect.width + 'px'
-  }
-
-  slider.style.transition = 'none'
-  updateSlider()
-  requestAnimationFrame(() => {
-    slider.style.transition = 'left 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1)'
-  })
-
-  const observer = new MutationObserver(() => updateSlider())
-  Array.from(group.querySelectorAll('.fc-button')).forEach(btn => {
-    observer.observe(btn, { attributes: true, attributeFilter: ['class'] })
-  })
-}
 
 // === Computations ===
 const todayClasses = computed(() => {
   const todayStr = dayjs().format('YYYY-MM-DD')
-  return classSessions.value.filter(c => c.date === todayStr && c.status !== 'consumed')
+  return classSessions.value.filter(c => c.date === todayStr)
 })
+
+const isClassAllReviewed = (cls) => {
+  const clsRecords = records.value.filter(r => (r.classId === cls._id || r.course === cls.className) && r.date === cls.date)
+  if (clsRecords.length === 0) return false // Hasn't truly been recorded or bug
+  // All have comment field filled?
+  return clsRecords.every(r => r.comment && r.comment.trim() !== '')
+}
+
 const todayClassesCount = computed(() => todayClasses.value.length)
 
 const exhaustedCount = computed(() => {
@@ -281,7 +255,7 @@ const sleepCount = computed(() => {
 const monthRecordsCount = computed(() => {
   // 当月销课记录数量
   const startOfMonth = dayjs().startOf('month').valueOf()
-  return records.value.filter(r => r.createdTimestamp >= startOfMonth).length
+  return records.value.filter(r => r.timestamp >= startOfMonth).length
 })
 
 // === Actions ===
@@ -297,6 +271,11 @@ const handleCheckIn = (cls) => {
     extendedProps: { ...cls }
   }
   showConsumeCenterDialog.value = true
+}
+
+const handleOpenCommentCenter = (cls) => {
+  activeCommentClassSession.value = cls
+  showCommentCenterDialog.value = true
 }
 
 // === FullCalendar Buttons ===
@@ -558,33 +537,64 @@ const handleCancelClass = async (event) => {
   padding: 4px 10px !important;
 }
 
-/* iOS 风格分段控件：Month / Week 切换器 */
+/* iOS 风格分段控件：完全用 CSS :has() 接管 Month / Week 切换器 */
 :deep(.fc-button-group) {
-  background: var(--gray-100) !important;
+  background-color: var(--gray-100) !important;
   border-radius: 999px !important;
   padding: 3px !important;
-  border: none !important;
-  position: relative;
   display: inline-flex !important;
   gap: 0 !important;
-}
-:deep(.fc-button-group > .fc-button) {
+  position: relative !important;
+  z-index: 1 !important;
   border: none !important;
+}
+
+:deep(.fc-button-group::before) {
+  content: '';
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  background-color: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  z-index: -1;
+  pointer-events: none;
+}
+
+:deep(.fc-button-group:has(.fc-button:last-child.fc-button-active)::before) {
+  transform: translateX(100%);
+}
+
+:deep(.fc-button-group > .fc-button) {
   background: transparent !important;
+  border: none !important;
   color: var(--gray-500) !important;
-  border-radius: 999px !important;
-  padding: 4px 16px !important;
   margin: 0 !important;
-  position: relative;
-  z-index: 1;
-  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-:deep(.fc-button-group > .fc-button.fc-button-active) {
-  background: transparent !important;
-  color: var(--gray-800) !important;
+  padding: 4px 16px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
   box-shadow: none !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  flex: 1 1 0% !important;
+  width: 70px !important;
+  transition: color 0.3s ease !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
+
+:deep(.fc-button-group > .fc-button.fc-button-active),
+:deep(.fc-button-group > .fc-button:active),
+:deep(.fc-button-group > .fc-button:focus),
+:deep(.fc-button-group > .fc-button:hover) {
+  color: var(--gray-900) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
 :deep(.fc-button-group > .fc-button:not(:first-child)) {
   margin-left: 0 !important;
 }

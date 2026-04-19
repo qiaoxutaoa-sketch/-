@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { checkIsAdmin } from '../utils/api'
 
 // 路由守卫鉴权标识符，通常在 login 成功后写入 localStorage，如 _callerPhone
 const isAuthenticated = () => !!localStorage.getItem('_callerPhone') && !!localStorage.getItem('_callerPassword')
@@ -20,11 +21,11 @@ const router = createRouter({
         { path: '', redirect: 'dashboard' },
         { path: 'dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue') },
         { path: 'students', name: 'students', component: () => import('../views/StudentsView.vue') },
-        { path: 'teachers', name: 'teachers', component: () => import('../views/TeachersView.vue') },
-        { path: 'courses', name: 'courses', component: () => import('../views/CoursesView.vue') },
+        { path: 'teachers', name: 'teachers', component: () => import('../views/TeachersView.vue'), meta: { requiresAdmin: true } },
+        { path: 'courses', name: 'courses', component: () => import('../views/CoursesView.vue'), meta: { requiresAdmin: true } },
         { path: 'records', name: 'records', component: () => import('../views/RecordsView.vue') },
-        { path: 'business', name: 'business', component: () => import('../views/BusinessView.vue') },
-        { path: 'secret', name: 'secret', component: () => import('../views/SecretView.vue') },
+        { path: 'business', name: 'business', component: () => import('../views/BusinessView.vue'), meta: { requiresAdmin: true } },
+        { path: 'secret', name: 'secret', component: () => import('../views/SecretView.vue'), meta: { requiresAdmin: true } },
       ]
     }
   ]
@@ -35,6 +36,9 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !isAuthenticated()) {
     next('/login')
   } else if (to.path === '/login' && isAuthenticated()) {
+    next('/')
+  } else if (to.meta.requiresAdmin && !checkIsAdmin()) {
+    // 拦截非管理员访问敏感页面
     next('/')
   } else {
     next()

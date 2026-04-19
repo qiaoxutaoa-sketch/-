@@ -1,8 +1,8 @@
-﻿import { app, callAdminOperate } from '../utils/api'
+import { app, callAdminOperate } from '../utils/api'
 
 export async function fetchClasses(skip = 0, limit = 100) {
-  const db = app.database()
-  const res = await db.collection('classes').orderBy('createdTimestamp', 'desc').skip(skip).limit(limit).get()
+  const res = await callAdminOperate('fetchClasses', { skip, limit })
+  if (!res.success) throw new Error(res.msg)
   return res.data || []
 }
 
@@ -25,14 +25,8 @@ export async function deleteClass(classId) {
 }
 
 export async function fetchClassSessions(startDateStr, endDateStr) {
-  const db = app.database()
-  const _ = db.command
-  const res = await db.collection('class_sessions')
-    .where({
-      date: _.gte(startDateStr).and(_.lte(endDateStr))
-    })
-    .limit(500)
-    .get()
+  const res = await callAdminOperate('fetchClassSessions', { startDateStr, endDateStr })
+  if (!res.success) throw new Error(res.msg)
   return res.data || []
 }
 

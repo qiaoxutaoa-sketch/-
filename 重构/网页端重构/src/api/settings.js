@@ -2,10 +2,9 @@ import { app, callAdminOperate } from '../utils/api'
 
 export async function fetchRemarkOptions() {
   try {
-    const db = app.database()
-    const res = await db.collection('settings').where({ type: 'consume_opts' }).get()
-    if (res.data && res.data.length > 0 && res.data[0].remarkOpts) {
-      return res.data[0].remarkOpts
+    const res = await callAdminOperate('fetchRemarkOptions')
+    if (res.success && res.data) {
+      return res.data
     }
   } catch(e) {
     console.warn('Failed to fetch remark options from settings', e)
