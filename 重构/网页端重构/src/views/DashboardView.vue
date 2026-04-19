@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%; display: flex; flex-direction: column; overflow-y: auto;">
+  <div style="height: 100%; display: flex; flex-direction: column; overflow-y: hidden;">
     <!-- Top Welcome Banner -->
     <div class="saas-card pastel-panel" style="flex-shrink:0;background:linear-gradient(135deg,var(--primary-100),var(--primary-50));margin-bottom:24px;padding:24px 32px;display:flex;justify-content:space-between;align-items:center;border:none">
       <div>
@@ -339,6 +339,7 @@ const calendarOptions = computed(() => {
     allDaySlot: false,
     slotEventOverlap: false,
     expandRows: true,
+    slotDuration: '01:00:00',
     slotMinTime: '08:00:00',
     slotMaxTime: '20:00:00',
     slotLabelFormat: { hour: 'numeric', omitZeroMinute: true, meridiem: 'short', hour12: false, affix: '时' },
