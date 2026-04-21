@@ -1,0 +1,14 @@
+<view class="tab-bar-container">
+  <!-- 底层液态玻璃滤镜容器 -->
+  <view class="liquid-glass-bg">
+    <view class="highlight-overlay"></view>
+  </view>
+
+  <view class="tab-bar-items">
+    <view wx:for="{{list}}" wx:key="index" class="tab-bar-item" data-path="{{item.pagePath}}" data-index="{{index}}" bindtap="switchTab">
+      <image class="tab-icon-img {{selected === index ? 'tab-icon-img-active' : ''}}" src="{{selected === index ? item.selectedIconPath : item.iconPath}}"></image>
+      <view class="tab-label {{selected === index ? 'tab-label-active' : ''}}">{{item.text}}</view>
+      <view class="active-indicator" wx:if="{{selected === index}}"></view>
+    </view>
+  </view>
+</view>

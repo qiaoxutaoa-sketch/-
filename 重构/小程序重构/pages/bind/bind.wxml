@@ -1,0 +1,75 @@
+<!--pages/bind/bind.wxml — Neo-Editorial Profile-->
+<view class="page-container" style="padding-top: {{navHeight}}px;">
+  
+  <view class="minimal-nav" style="padding-top: {{navTop}}px; height: {{navHeight}}px;"></view>
+
+  <view class="hero-header fade-in">
+    <view class="sub-title">IDENTITY</view>
+    <view class="display-title">服务中心</view>
+  </view>
+
+  <view class="profile-hero fade-in">
+    <view class="avatar-layer">
+      <image class="hero-avatar" mode="aspectFill" src="{{isVip ? students[currentStudentIdx].avatar : userInfo.avatarUrl || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}}"></image>
+      <!-- 印章式验证状态符 (Stamp Indicator) -->
+      <view class="stamp-badge {{isVip ? 'stamp-verified' : 'stamp-unverified'}}">
+        {{isVip ? '已认证' : '访客GUEST'}}
+      </view>
+    </view>
+    
+    <view class="hero-id-info">
+      <text class="hero-name">{{isVip ? students[currentStudentIdx].name : (userInfo.nickName || '访客用户')}}</text>
+      <text class="hero-system-id">编号: {{isVip ? students[currentStudentIdx]._id : '未登记身份'}}</text>
+    </view>
+  </view>
+
+  <!-- 不对称服务网格 (Asymmetric Service Grid) -->
+  <view class="services-section fade-in" style="animation-delay: 0.15s;">
+    <view class="sub-title" style="margin-bottom: 32rpx; display:block; border-bottom:1px solid #000; padding-bottom:16rpx;">全部服务集成</view>
+    
+    <view class="bento-grid">
+      
+      <view class="grid-cell cell-wide" bindtap="openNewRegistration">
+        <text class="cell-index">01</text>
+        <view class="cell-content">
+          <text class="cell-title">新生登记</text>
+          <text class="cell-desc">建立专属学员档案数据</text>
+        </view>
+        <text class="arrow">↗</text>
+      </view>
+
+      <view class="grid-cell" bindtap="goToLeave">
+        <text class="cell-index">02</text>
+        <view class="cell-content">
+          <text class="cell-title">请假申请</text>
+          <text class="cell-desc">处理课程停课</text>
+        </view>
+        <text class="arrow">↗</text>
+      </view>
+
+      <view class="grid-cell" bindtap="contactTeacher">
+        <text class="cell-index">03</text>
+        <view class="cell-content">
+          <text class="cell-title">专属客服</text>
+          <text class="cell-desc">联系主教获取支持</text>
+        </view>
+        <text class="arrow">↗</text>
+      </view>
+
+      <view class="grid-cell cell-wide" bindtap="aboutUs">
+        <text class="cell-index">04</text>
+        <view class="cell-content">
+          <text class="cell-title">关于青九</text>
+          <text class="cell-desc">探索青九美术教育理念与愿景</text>
+        </view>
+        <text class="arrow">↗</text>
+      </view>
+
+    </view>
+  </view>
+  
+  <view wx:if="{{!isVip}}" class="action-wrap fade-in" style="margin-top: 80rpx;">
+    <button class="btn-black" bindtap="checkLoginStatus">立刻验证学员身份</button>
+  </view>
+
+</view>

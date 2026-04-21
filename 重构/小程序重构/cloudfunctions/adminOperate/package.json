@@ -1,0 +1,20 @@
+{
+  "name": "adminoperate",
+  "version": "1.0.0",
+  "description": "青九美术教务系统-管理员特权操作云函数",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "acorn": "^8.16.0",
+    "decomment": "^0.9.5",
+    "iconv-lite": "^0.7.2",
+    "wx-server-sdk": "~2.6.3"
+  },
+  "devDependencies": {
+    "@cloudbase/node-sdk": "^3.18.1"
+  }
+}

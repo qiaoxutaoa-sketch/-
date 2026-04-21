@@ -1,0 +1,88 @@
+/**app.wxss**/
+page {
+  /* Design Tokens */
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --bg-color: #F8FAFC;
+  /*! System colors */
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  --font-base: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+
+  background-color: var(--bg-color);
+  font-family: var(--font-base);
+  font-size: 28rpx;
+  color: var(--gray-800);
+  box-sizing: border-box;
+}
+
+/* Glass/Card Layout base */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  border-radius: 36rpx;
+  padding: 32rpx;
+  margin: 24rpx;
+}
+
+/* Shared Titles */
+.section-title {
+  font-size: 38rpx;
+  font-weight: 800;
+  color: var(--gray-900);
+  margin-bottom: 24rpx;
+  letter-spacing: -0.5px;
+}
+
+/* Reset buttons */
+button {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+button::after {
+  display: none;
+}
+
+/* Blue primary primary-btn */
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999rpx;
+  font-weight: 600;
+  font-size: 30rpx;
+  padding: 22rpx 48rpx;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  text-align: center;
+  line-height: 1.5;
+  border: none;
+}
+.btn-primary:active {
+  background: var(--primary-hover);
+  transform: translateY(2rpx);
+}
+
+.capsule-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+}

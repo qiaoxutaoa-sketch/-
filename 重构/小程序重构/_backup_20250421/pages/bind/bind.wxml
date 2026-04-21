@@ -1,0 +1,130 @@
+<!--pages/bind/bind.wxml-->
+<view class="container fade-in" style="padding-top: {{navTop + navHeight + 20}}px;">
+  
+  <!-- 自定义导航栏 -->
+  <view class="custom-nav" style="padding-top: {{navTop}}px; height: {{navHeight}}px;">
+    <view class="nav-content">
+      <view style="display:flex;align-items:center;">
+        <view class="icon-grid">
+          <view class="dot"></view><view class="dot"></view><view class="dot"></view>
+          <view class="dot"></view><view class="dot"></view><view class="dot"></view>
+          <view class="dot"></view><view class="dot"></view><view class="dot"></view>
+        </view>
+        <text class="nav-title">青九艺术</text>
+      </view>
+      <view class="nav-bell">🔔</view>
+    </view>
+  </view>
+
+  <block wx:if="{{isVip}}">
+    <!-- 1:1 顶部个人主页卡片 -->
+    <view class="profile-header content-card fade-in">
+      <view class="avatar-wrap">
+        <image class="avatar" src="https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0"></image>
+        <view class="edit-icon">✏️</view> <!-- pencil icon -->
+      </view>
+      <view class="info-wrap">
+        <text class="p-name">青九家长</text>
+        <view class="p-phone-btn" bindtap="openOldVerification">
+          <text class="p-icon">📞</text>
+          <text class="p-text">{{studentAssigned ? '已验证接驳学员' : '未获取手机号'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 1:1 四宫格导航 -->
+    <view class="grid-actions fade-in">
+      <view class="grid-card" bindtap="openNewRegistration">
+        <text class="g-icon">🖊️</text>
+        <text class="g-title">新生登记</text>
+        <text class="g-en">REGISTRATION</text>
+      </view>
+      <view class="grid-card" bindtap="goLeave">
+        <text class="g-icon">📅</text>
+        <text class="g-title">我的请假</text>
+        <text class="g-en">LEAVE REQUEST</text>
+      </view>
+      <view class="grid-card" bindtap="alertWIP">
+        <text class="g-icon">❓</text>
+        <text class="g-title">联系老师</text>
+        <text class="g-en">CONTACT</text>
+      </view>
+      <view class="grid-card" bindtap="alertWIP">
+        <text class="g-icon">ℹ️</text>
+        <text class="g-title">关于青九</text>
+        <text class="g-en">ABOUT US</text>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="container" style="display:flex;align-items:center;justify-content:center;height:100vh;">
+    <text style="color:var(--gray-400)">请先前往大厅验证特权</text>
+  </view>
+
+  <view style="height: 100px;"></view> <!-- Bottom spacing -->
+</view>
+
+<!-- ================= 弹窗区域 ================= -->
+
+<!-- 新生登记 弹窗覆盖层 -->
+<view class="popup-mask fade-in" wx:if="{{showNewPopup}}">
+  <view class="popup-content glass-card">
+    <view class="popup-header">
+      <text class="p-title">新生档案确立</text>
+      <view class="p-close" bindtap="closeNewPopup">×</view>
+    </view>
+    <scroll-view scroll-y style="max-height: 60vh;">
+      <view class="form-container">
+        <view class="form-group">
+          <text class="label">学员姓名 <text style="color: red">*</text></text>
+          <input class="input" placeholder="请输入孩子真实姓名" data-field="name" bindinput="handleNewInput" />
+        </view>
+        <view class="flex-row">
+          <view class="form-group flex-1" style="margin-right:10px;">
+            <text class="label">性别 <text style="color: red">*</text></text>
+            <picker mode="selector" range="{{genders}}" bindchange="bindGenderChange">
+              <view class="picker-input">{{newStudent.gender || '请选择'}} <text class="arrow">▼</text></view>
+            </picker>
+          </view>
+          <view class="form-group flex-1">
+            <text class="label">年龄 <text style="color: red">*</text></text>
+            <input class="input" type="number" placeholder="周岁" data-field="age" bindinput="handleNewInput" />
+          </view>
+        </view>
+        <view class="form-group">
+          <text class="label">家长手机号 <text style="color: red">*</text></text>
+          <input class="input" type="number" placeholder="接收重要通知使用" data-field="phone" bindinput="handleNewInput" />
+        </view>
+        <view class="form-group">
+          <text class="label">家庭住址</text>
+          <input class="input" placeholder="选填，便于画室区域服务" data-field="address" bindinput="handleNewInput" />
+        </view>
+        <button class="btn-primary form-submit" bindtap="submitNew" style="margin-top:20rpx;">提交入驻档案</button>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+
+<!-- 老生验证 弹窗覆盖层 -->
+<view class="popup-mask fade-in" wx:if="{{showOldPopup}}">
+  <view class="popup-content glass-card">
+    <view class="popup-header">
+      <text class="p-title">关联已有学员档案</text>
+      <view class="p-close" bindtap="closeOldPopup">×</view>
+    </view>
+    <view class="form-container">
+      <view class="info-banner" style="background:#f1f5f9;color:#64748b;padding:20rpx;border-radius:16rpx;font-size:24rpx;margin-bottom:30rpx;">
+        仅用于数据已由线目录入的老学员找回自己的账户
+      </view>
+      <view class="form-group">
+        <text class="label">学员姓名</text>
+        <input class="input" placeholder="请输入已报名学员真实姓名" data-field="name" bindinput="handleOldInput" />
+      </view>
+      <view class="form-group">
+        <text class="label">预留手机号</text>
+        <input class="input" type="number" placeholder="请输入报名时的手机号" data-field="phone" bindinput="handleOldInput" />
+      </view>
+      <button class="btn-primary form-submit" bindtap="submitOld" style="background:#0f172a; margin-top:20rpx;">确认身份接驳</button>
+    </view>
+  </view>
+</view>

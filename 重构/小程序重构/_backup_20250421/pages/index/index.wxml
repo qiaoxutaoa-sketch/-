@@ -1,0 +1,118 @@
+<!--pages/index/index.wxml-->
+
+<view class="container fade-in" style="padding-top: {{navTop + navHeight + 20}}px;">
+  
+  <!-- 自定义导航栏 -->
+  <view class="custom-nav" style="padding-top: {{navTop}}px; height: {{navHeight}}px;">
+    <view class="nav-content">
+      <view class="icon-grid">
+        <view class="dot"></view><view class="dot"></view><view class="dot"></view>
+        <view class="dot"></view><view class="dot"></view><view class="dot"></view>
+        <view class="dot"></view><view class="dot"></view><view class="dot"></view>
+      </view>
+      <text class="nav-title">青九艺术</text>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-state">
+    <view class="loader"></view>
+    <text style="margin-top: 16rpx; color: var(--gray-400)">加载中...</text>
+  </view>
+
+  <block wx:else>
+
+    <!-- 状态A: 展厅伪装模式 (非VIP环境) -->
+    <view wx:if="{{!isVip}}" class="gallery-mode fade-in">
+      <view class="gallery-header">
+        <text class="gallery-title">青九画室云上展厅</text>
+        <text class="gallery-subtitle">Aesthetic Gallery & Creative Studio</text>
+      </view>
+
+      <view class="gallery-grid">
+        <view class="gallery-item">
+          <image class="gallery-img" mode="aspectFill" src="https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"></image>
+        </view>
+      </view>
+    </view>
+
+    <!-- 状态B: 真实内网模式 (家长/学员看板) -->
+    <view wx:else class="dashboard-mode fade-in">
+      
+      <!-- 如果没有任何绑定的学生 -->
+      <view class="empty-state" wx:if="{{students.length === 0}}">
+        <image src="/assets/empty.png" class="empty-img" style="width:200rpx;height:200rpx;margin:80rpx auto 40rpx;display:block;opacity:0.3;"></image>
+        <text style="display:block;text-align:center;color:var(--gray-900);font-size:40rpx;font-weight:bold;margin-bottom:10rpx;">您的账号尚未绑定学员</text>
+        <text style="display:block;text-align:center;color:var(--gray-500);font-size:28rpx;margin-bottom:60rpx;">请选择您的入驻方式</text>
+        
+        <button class="btn-primary" style="margin: 0 auto 30rpx; width: 80%; background: #475569;" bindtap="goToBind" data-tab="old">我是老生验证</button>
+        <button class="btn-primary" style="margin: 0 auto; width: 80%; background: #3b82f6;" bindtap="goToBind" data-tab="new">新生报名申请</button>
+      </view>
+      
+      <!-- 有子女的情况 -->
+      <block wx:else>
+        <!-- 子女切换栏 (多子女环境) -->
+        <scroll-view scroll-x class="student-tabs" wx:if="{{students.length > 1}}">
+          <view 
+            wx:for="{{students}}" 
+            wx:key="_id" 
+            class="tab-item {{currentStudentIdx === index ? 'active' : ''}}"
+            data-idx="{{index}}"
+            bindtap="switchStudent"
+          >
+            {{item.name}}
+          </view>
+        </scroll-view>
+
+        <!-- 1:1 当前查看的学员仪表盘 -->
+        <view class="student-card content-card fade-in">
+          <view class="top-tag">{{students[currentStudentIdx].name}}</view>
+          <view class="profile-row">
+            <image class="avatar" src="{{students[currentStudentIdx].avatar || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}}"></image>
+            <view class="info-col">
+              <text class="name">{{students[currentStudentIdx].name}}</text>
+              <text class="course-text">{{students[currentStudentIdx].course || '创意美术'}}</text>
+            </view>
+            <view class="arrow" bindtap="goToRecords">›</view>
+          </view>
+        </view>
+
+        <!-- 1:1 额度看板 -->
+        <view class="stats-row content-card fade-in">
+          <view class="stat-box left-box">
+            <text class="stat-label">当前可用</text>
+            <view class="stat-value-large">{{students[currentStudentIdx].remain || 0}}</view>
+          </view>
+          <view class="stat-box right-box">
+            <text class="stat-label">总课时</text>
+            <view class="stat-value-small">{{students[currentStudentIdx].totalHours || 0}}</view>
+          </view>
+        </view>
+
+        <!-- 1:1 最新点评 -->
+        <view class="section-title-row fade-in">
+          <text class="s-title">最新点评</text>
+          <text class="s-link" bindtap="goToRecords">查看全部</text>
+        </view>
+        
+        <block wx:if="{{recordsList.length > 0}}">
+          <view class="review-card content-card fade-in" wx:for="{{recordsList}}" wx:key="_id">
+            <view wx:if="{{item.artwork && item.artwork.length > 0}}" class="black-placeholder" style="background-image: url('{{item.artwork[0]}}'); background-size: cover; background-position: center;"></view>
+            <view class="r-text-box" style="padding: 20rpx 30rpx;">
+              <text class="r-date" style="display:block;color:#94a3b8;font-size:24rpx;margin-bottom:8rpx;">{{item.date}} · {{item.teacher}}点评</text>
+              <text class="r-desc" style="display:block;color:#1e293b;font-size:28rpx;line-height:1.6;">{{item.comment || item.teacherComment || '暂无文字点评'}}</text>
+            </view>
+          </view>
+        </block>
+
+        <view class="review-card content-card fade-in" wx:else>
+          <view class="black-placeholder" style="display:flex;align-items:center;justify-content:center;color:#64748b;">暂无点评记录</view>
+        </view>
+
+      </block>
+    </view>
+    
+    <view style="height: 120px;"></view> <!-- Bottom spacing -->
+
+  </block>
+</view>

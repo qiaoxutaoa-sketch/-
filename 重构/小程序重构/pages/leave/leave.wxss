@@ -1,0 +1,111 @@
+/* pages/leave/leave.wxss */
+.page-container {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* === 透明状态栏 (仅作占位器) === */
+.liquid-status-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  box-sizing: border-box;
+}
+
+.status-inner {
+  display: flex;
+  align-items: center;
+  padding-left: 32rpx;
+}
+
+.back-btn {
+  font-size: 30rpx;
+  font-weight: 500;
+  letter-spacing: 1rpx;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+/* === Header === */
+.header-section {
+  padding: 60rpx 40rpx 80rpx;
+}
+.display-title {
+  display: block;
+  font-size: 80rpx;
+  font-weight: 900;
+  color: var(--text-muted);
+  opacity: 0.15;
+  margin-bottom: -24rpx;
+  letter-spacing: 2rpx;
+}
+.title {
+  display: block;
+  font-size: 56rpx;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+.subtitle {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  letter-spacing: 2rpx;
+  margin-top: 8rpx;
+  display: block;
+}
+
+/* === Form Container === */
+.form-container {
+  padding: 0 40rpx 100rpx;
+}
+.form-group {
+  margin-bottom: 64rpx;
+}
+.form-group-textarea {
+  margin-bottom: 32rpx;
+}
+.form-label {
+  display: block;
+  font-size: 20rpx;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 2rpx;
+  margin-bottom: 24rpx;
+  text-transform: uppercase;
+}
+.form-input {
+  display: block;
+  width: 100%;
+  font-size: 34rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  padding: 16rpx 0;
+  border-bottom: 1px solid var(--divider);
+  transition: border-color 0.3s;
+}
+.form-input:focus {
+  border-bottom-color: var(--text-primary);
+}
+.plas {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.textarea {
+  height: 240rpx;
+  line-height: 1.6;
+}
+.word-count {
+  text-align: right;
+  font-size: 20rpx;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 16rpx;
+  letter-spacing: 1rpx;
+}
+
+.form-btn-wrap {
+  margin-top: 80rpx;
+  margin-bottom: 64rpx;
+}

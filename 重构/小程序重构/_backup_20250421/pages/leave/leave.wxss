@@ -1,0 +1,48 @@
+/* pages/leave/leave.wxss */
+.header-section {
+  padding: 40rpx 40rpx 20rpx;
+}
+.title {
+  display: block;
+  font-size: 56rpx;
+  font-weight: 900;
+  color: var(--gray-900);
+}
+.subtitle {
+  font-size: 28rpx;
+  color: var(--gray-500);
+}
+
+.form-group {
+  margin-bottom: 40rpx;
+}
+.label {
+  display: block;
+  font-size: 26rpx;
+  color: var(--gray-600);
+  margin-bottom: 12rpx;
+  font-weight: 600;
+}
+.picker-view {
+  background: var(--gray-50);
+  padding: 24rpx;
+  border-radius: 16rpx;
+  border: 1px solid var(--gray-200);
+  font-size: 30rpx;
+  color: var(--gray-800);
+  font-weight: 600;
+}
+.textarea {
+  background: var(--gray-50);
+  padding: 24rpx;
+  border-radius: 16rpx;
+  border: 1px solid var(--gray-200);
+  font-size: 30rpx;
+  width: auto;
+  height: 200rpx;
+}
+
+.form-submit {
+  width: 100%;
+  margin-top: 64rpx;
+}

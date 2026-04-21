@@ -1,0 +1,98 @@
+/* pages/bind/bind.wxss — Neo-Editorial Profile */
+
+.page-container {
+  min-height: 100vh;
+  padding: 0 40rpx;
+  padding-bottom: 200rpx;
+}
+
+.hero-header {
+  margin-top: 40rpx;
+  margin-bottom: 80rpx;
+}
+.display-title {
+  font-size: 88rpx; font-weight: 800;
+  line-height: 0.9; letter-spacing: -2rpx; margin-top: 8rpx;
+}
+
+/* 巨幅排版个人资料 */
+.profile-hero {
+  margin-bottom: 100rpx;
+  display: flex; flex-direction: column; align-items: flex-start;
+}
+.avatar-layer {
+  position: relative; margin-bottom: 40rpx;
+}
+.hero-avatar {
+  width: 200rpx; height: 200rpx;
+  border-radius: 0; /* 直角边缘 */
+  border: 1px solid var(--text-primary);
+  filter: grayscale(20%); /* 略带复古静物滤镜 */
+}
+
+/* 印章风格的状态条 */
+.stamp-badge {
+  position: absolute;
+  bottom: -20rpx; right: -40rpx;
+  border: 2px solid; padding: 4rpx 12rpx;
+  font-family: monospace; font-size: 20rpx; font-weight: 800;
+  letter-spacing: 2rpx; transform: rotate(-5deg);
+  background: var(--bg);
+}
+.stamp-verified {
+  border-color: var(--text-primary); color: var(--text-primary);
+}
+.stamp-unverified {
+  border-color: var(--text-muted); color: var(--text-muted); text-decoration: line-through;
+}
+
+.hero-id-info {
+  display: flex; flex-direction: column;
+}
+.hero-name {
+  font-size: 64rpx; font-weight: 800;
+  letter-spacing: -2rpx; margin-bottom: 8rpx;
+}
+.hero-system-id {
+  font-family: monospace; font-size: 24rpx;
+  color: var(--brand-orange); letter-spacing: 2rpx;
+}
+
+/* 不对称网格服务大厅 */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: minmax(180rpx, auto);
+  gap: 2rpx; /* 使用背景色和gap来做1px细线网格 */
+  background: var(--text-primary);
+  border: 1px solid var(--text-primary);
+}
+.grid-cell {
+  background: var(--bg);
+  padding: 32rpx;
+  display: flex; flex-direction: column; justify-content: space-between;
+  position: relative;
+}
+.cell-wide {
+  grid-column: span 2;
+  flex-direction: row; align-items: center;
+}
+.cell-wide .cell-index { position: static; margin-right: 32rpx; }
+.cell-wide .arrow { margin-top: 0; }
+
+.cell-index {
+  font-family: monospace; font-size: 24rpx; color: var(--text-muted);
+  position: absolute; top: 32rpx; left: 32rpx;
+}
+.cell-content { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+.cell-title {
+  font-size: 32rpx; font-weight: 800;
+  letter-spacing: -1rpx; margin-bottom: 8rpx;
+}
+.cell-desc {
+  font-size: 22rpx; color: var(--text-secondary);
+}
+.arrow {
+  font-family: monospace; font-size: 32rpx;
+  align-self: flex-end; margin-top: 32rpx;
+}

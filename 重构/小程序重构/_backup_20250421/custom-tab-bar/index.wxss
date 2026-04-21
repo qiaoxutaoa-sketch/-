@@ -1,0 +1,152 @@
+/* ==========================================
+   iOS 26 Liquid Glass Tab Bar - V3 极致通透版
+   核心：降低 blur、极低白色、高 saturate，让底层内容近乎完全穿透
+   ========================================== */
+
+.tab-bar-container {
+  pointer-events: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-bottom);
+  padding-bottom: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 9999;
+  background: transparent;
+}
+
+/* 液态玻璃本体 —— 半融化透明透镜 */
+.liquid-glass-bg {
+  pointer-events: auto;
+  position: absolute;
+  bottom: calc(max(env(safe-area-inset-bottom), 18px));
+  width: 260px;
+  height: 58px;
+  border-radius: 50px;
+  
+  /* 核心背景：使用对角线渐变模拟凸面玻璃的高光扫过 */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.15) 80%,
+    rgba(255, 255, 255, 0.3) 100%
+  );
+  
+  /* 官方图真相：其实景深模糊非常大（25px+），是通过强对比的边缘光形成"清晰"的错觉 */
+  backdrop-filter: blur(25px) saturate(200%);
+  -webkit-backdrop-filter: blur(25px) saturate(200%);
+  
+  /* 透明边缘张力线，顶部最亮 */
+  border-top: 1px solid rgba(255, 255, 255, 0.8);
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
+  border-right: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  
+  /* =========================================
+     核心视觉戏法：通过极限夸张的 Inner Shadow 构建光学折射管
+     ========================================= */
+  box-shadow: 
+    /* 1. 锐利反光带（玻璃最上面那条白线） */
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.9),
+    /* 2. 玻璃上壁的厚度晕染（管壁折射）大口径向下扩散 */
+    inset 0 10px 20px rgba(255, 255, 255, 0.4),
+    /* 3. 玻璃下壁的物理暗影（光照不到的死角），制造圆柱形底部 */
+    inset 0 -8px 16px rgba(0, 0, 0, 0.18),
+    /* 4. 底层光晕：微微的暖色调让阴影不至于发脏 */
+    inset 0 -1px 2px rgba(0, 0, 0, 0.3),
+    /* 5. 悬浮外部阴影 */
+    0 16px 40px rgba(0, 0, 0, 0.15);
+    
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* 弧面高光 —— 仅在顶部薄薄一层 */
+.highlight-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 30%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Tab items 布局层 */
+.tab-bar-items {
+  pointer-events: auto;
+  position: absolute;
+  bottom: calc(max(env(safe-area-inset-bottom), 18px));
+  width: 260px;
+  height: 58px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 10;
+}
+
+.tab-bar-item {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.tab-icon-img {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 2px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-icon-img-active {
+  transform: scale(1.1);
+}
+
+.tab-label {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.tab-label-active {
+  color: #1a1a1a;
+  font-weight: bold;
+}
+
+.active-indicator {
+  position: absolute;
+  bottom: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #1a1a1a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

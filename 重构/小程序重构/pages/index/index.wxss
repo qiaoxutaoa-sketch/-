@@ -1,0 +1,353 @@
+/* pages/index/index.wxss — Immersive Gallery & HUD */
+
+.page-container {
+  min-height: 100vh;
+  position: relative;
+  background: var(--bg);
+  padding-bottom: 120rpx;
+}
+
+/* === 透明状态栏 (仅作占位器) === */
+.liquid-status-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  box-sizing: border-box;
+}
+
+.status-inner {
+  display: flex;
+  align-items: center;
+  padding-left: 32rpx;
+}
+.status-logo {
+  height: 60%;
+  width: auto;
+  max-width: 180rpx;
+}
+
+/* === 主视觉画廊 (The Gallery) === */
+.gallery-view {
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-item {
+  margin-bottom: 24rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-image {
+  width: 100vw;
+  display: block;
+}
+.empty-image {
+  height: 80vw;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface);
+  font-family: monospace; font-size: 24rpx; color: var(--text-muted);
+  letter-spacing: 2rpx;
+}
+
+.gallery-caption {
+  padding: 32rpx 40rpx 40rpx 40rpx;
+  border-bottom: 1px solid var(--divider);
+  display: flex; flex-direction: column;
+}
+.caption-date {
+  font-family: monospace; font-size: 20rpx;
+  color: var(--text-muted); margin-bottom: 16rpx;
+}
+.caption-text {
+  font-size: 28rpx; line-height: 1.7;
+  color: var(--text-primary); margin-bottom: 16rpx;
+  text-align: justify;
+}
+.caption-author {
+  font-size: 22rpx; font-weight: 700;
+  color: var(--text-secondary);
+}
+.empty-gallery {
+  height: 70vh; display: flex; align-items: center; justify-content: center;
+}
+.empty-text { font-family: monospace; color: var(--text-muted); }
+
+/* === 真正的纯 CSS 液态玻璃 (Bilibili 神级教程完整复刻篇) === */
+.hud-capsule {
+  position: fixed;
+  bottom: 60rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  /* 主体全透明（视频原版渐变适用于正圆，长条胶囊会产生竖线接缝，因此去掉） */
+  background: transparent;
+  
+  /* 双实线边框（视频原版参数：1px double） */
+  border: 1px double rgba(51, 51, 51, 0.08);
+  box-sizing: border-box;
+
+  /* 获取绝对透视，视频原版没有高强度磨砂 */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+
+  /* 基础内阴影高光网络 */
+  box-shadow: 
+    inset 2px -2px 1px -1px rgba(255, 255, 255, 0.9),
+    inset -2px 2px 1px -1px rgba(255, 255, 255, 0.9),
+    inset 6px -6px 1px -6px rgba(255, 255, 255, 0.55),
+    inset -6px 6px 1px -6px rgba(255, 255, 255, 0.55),
+    inset 0 0 2px rgba(0, 0, 0, 0.8),
+    0 16px 32px rgba(0, 0, 0, 0.15);
+  
+  /* 教程步骤 5：终极杀招 —— 整体对比度提纯
+     利用高对比度“榨出”伪类模糊阴影中的硬边缘，形成极致的真实物理折射光感 */
+  filter: contrast(2); /* 视频中用了3，考虑到内部带有彩色 logo，折中为 2 避免颜色过度失真 */
+  
+  color: var(--text-primary);
+  height: 100rpx;
+  border-radius: 100rpx; /* 改为 100rpx 确保绝对完美的胶囊弧度而不是 100px */
+  display: flex; align-items: center;
+  padding: 0 36rpx;
+  z-index: 900;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
+}
+
+/* 教程步骤 3：小一层的模糊光圈 (用于强化边缘内侧体积) */
+/* 使用 absolute 贴边定位，防止 width/height 配合 translate 造成的渲染切分 Bug */
+.hud-capsule::after {
+  content: '';
+  position: absolute;
+  top: 4px; bottom: 4px; left: 4px; right: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 100rpx;
+  filter: blur(1px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* 教程步骤 4：边缘移位的模糊阴影 */
+.hud-capsule::before {
+  content: '';
+  position: absolute;
+  top: 14px; /* 向下移位 */
+  bottom: -6px; /* 底部溢出并虚化成为胶囊下方自带深色投影 */
+  left: 8px; right: 8px;
+  border-radius: 100rpx;
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  filter: blur(6px);
+  z-index: -2;
+  pointer-events: none;
+}
+
+/* 教程步骤 5：内部文字图标采用 drop-shadow 以获得悬浮感 */
+.hud-capsule .capsule-logo,
+.hud-capsule .capsule-divider,
+.hud-capsule .capsule-text,
+.hud-capsule .capsule-dot {
+  filter: drop-shadow(0 6px 4px rgba(0, 0, 0, 0.15));
+}
+
+.hud-hidden {
+  transform: translate(-50%, 150%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.capsule-logo {
+  height: 72rpx; width: auto;
+}
+.capsule-divider {
+  width: 1px; height: 36rpx;
+  background: rgba(0, 0, 0, 0.12);
+  margin: 0 24rpx;
+}
+.capsule-text {
+  font-size: 26rpx; font-weight: 600; letter-spacing: 1rpx;
+  flex: 1;
+}
+.capsule-dot {
+  width: 12rpx; height: 12rpx; background: var(--brand-orange); border-radius: 50%;
+  margin-left: 16rpx;
+}
+
+/* === 抽屉控制中枢 (The Drawer) === */
+
+/* 学员切换器 */
+.student-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 40rpx;
+  padding: 0 8rpx;
+}
+.switcher-arrow {
+  width: 64rpx; height: 64rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48rpx; font-weight: 300;
+  color: var(--text-primary);
+  border: 1px solid var(--divider);
+  border-radius: 50%;
+  transition: opacity 0.2s;
+}
+.switcher-arrow.disabled {
+  opacity: 0.15;
+  pointer-events: none;
+}
+.switcher-info {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center;
+}
+.switcher-name {
+  font-size: 36rpx; font-weight: 800;
+  letter-spacing: -1rpx;
+}
+.switcher-meta {
+  font-size: 20rpx; font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 1rpx;
+  margin-top: 4rpx;
+}
+.hud-drawer-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 990;
+  visibility: hidden; opacity: 0;
+  transition: all 0.3s;
+}
+.hud-drawer-overlay.show {
+  visibility: visible; opacity: 1;
+}
+
+.hud-drawer-content {
+  position: absolute; bottom: 0; left: 0; width: 100vw;
+  background: var(--bg);
+  padding: 0 40rpx 80rpx 40rpx;
+  border-radius: 32rpx 32rpx 0 0;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+.hud-drawer-overlay.show .hud-drawer-content {
+  transform: translateY(0);
+}
+
+.drawer-handler {
+  width: 80rpx; height: 8rpx; background: var(--divider);
+  margin: 24rpx auto 0; border-radius: 4rpx;
+}
+
+/* Drawer 内的数据区域 */
+.data-grid {
+  display: flex; align-items: flex-end; gap: 32rpx; margin-top: 40rpx;
+}
+.data-cell { display: flex; flex-direction: column; }
+.data-huge {
+  font-size: 140rpx; font-weight: 800;
+  line-height: 0.8; letter-spacing: -6rpx;
+}
+.data-norm {
+  font-size: 64rpx; font-weight: 600;
+  line-height: 0.9; letter-spacing: -2rpx; color: var(--text-muted);
+}
+.data-label {
+  font-size: 20rpx; font-weight: 700;
+  letter-spacing: 2rpx; color: var(--text-secondary); margin-top: 24rpx;
+}
+.cell-hover { opacity: 0.6; }
+
+.hud-divider {
+  height: 1px; background: var(--text-primary);
+  opacity: 0.15; margin: 60rpx 0;
+}
+
+/* 抽屉内的非对称服务网格 */
+.bento-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  grid-auto-rows: minmax(180rpx, auto);
+  gap: 1px; background: var(--text-primary);
+  border: 1px solid var(--text-primary);
+}
+.grid-cell {
+  background: var(--bg); padding: 32rpx;
+  display: flex; flex-direction: column;
+  justify-content: space-between; position: relative;
+}
+.cell-wide {
+  grid-column: span 2; flex-direction: row; align-items: center;
+}
+.cell-wide .cell-index { position: static; margin-right: 32rpx; }
+
+.cell-index {
+  font-family: monospace; font-size: 24rpx; color: var(--text-muted);
+  position: absolute; top: 32rpx; left: 32rpx;
+}
+.cell-content {
+  flex: 1; display: flex; flex-direction: column; justify-content: flex-end;
+}
+.cell-title {
+  font-size: 32rpx; font-weight: 800; letter-spacing: -1rpx; margin-bottom: 8rpx;
+}
+.cell-desc { font-size: 22rpx; color: var(--text-secondary); }
+
+/* 表单组件 */
+.form-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 40rpx; margin-bottom: 60rpx;
+}
+.form-title { font-size: 48rpx; font-weight: 800; }
+.form-close {
+  width: 64rpx; height: 64rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36rpx; color: var(--text-muted);
+  border: 1px solid var(--divider); border-radius: 50%;
+}
+.form-group {
+  margin-bottom: 40rpx; border-bottom: 1px solid var(--text-primary);
+  padding-bottom: 16rpx;
+}
+.form-label {
+  font-family: monospace; font-size: 20rpx; color: var(--text-muted);
+  display: block; margin-bottom: 16rpx;
+}
+.form-input { font-size: 32rpx; font-weight: 600; color: var(--text-primary); }
+.plas { color: var(--text-muted); font-weight: 400; }
+.form-btn-wrap { margin-top: 80rpx; }
+
+/* 老学员绑定入口 */
+.bind-entry {
+  margin-top: 40rpx;
+  padding: 24rpx 0;
+  text-align: center;
+}
+.bind-entry-text {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  letter-spacing: 1rpx;
+  border-bottom: 0.5px solid var(--text-muted);
+  padding-bottom: 4rpx;
+}
+.bind-hint {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 48rpx;
+  padding: 0 8rpx;
+}
+
+/* 未授权状态 */
+.unauth-state {
+  margin-top: 200rpx; padding: 80rpx 40rpx; text-align: center;
+}
+.unauth-logo {
+  width: 120rpx; height: 120rpx; margin-bottom: 48rpx;
+}
+.unauth-title {
+  font-size: 28rpx; font-weight: 800; letter-spacing: 2rpx; margin-bottom: 16rpx;
+}
+.unauth-subtitle {
+  font-size: 24rpx; color: var(--text-muted);
+}

@@ -1,0 +1,46 @@
+<!--pages/leave/leave.wxml-->
+<view class="container fade-in">
+  <view class="header-section">
+    <text class="title">提前报备</text>
+    <text class="subtitle">让老师及时调整授课计划</text>
+  </view>
+
+  <view class="form-container glass-card">
+    
+    <view class="form-group">
+      <text class="label">选择学员</text>
+      <picker bindchange="bindStudentChange" value="{{studentIdx}}" range="{{students}}" range-key="name">
+        <view class="picker-view">
+          {{students.length > 0 ? students[studentIdx].name : '加载中...'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="label">请假日期</text>
+      <picker mode="date" value="{{date}}" bindchange="bindDateChange">
+        <view class="picker-view">{{date}}</view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="label">请假事由 (需通过文字合规审查)</text>
+      <textarea 
+        class="textarea" 
+        placeholder="例如：发烧请假，下周一来补课" 
+        bindinput="handleReason"
+        maxlength="200"
+      ></textarea>
+      <text style="font-size: 22rpx; color: var(--gray-400); text-align: right; display: block; margin-top: 8rpx;">{{reason.length}}/200</text>
+    </view>
+
+    <button class="btn-primary form-submit" bindtap="submitLeave">确认提交</button>
+
+  </view>
+
+  <view style="padding: 0 40rpx;">
+    <view style="background: rgba(245, 158, 11, 0.1); padding: 24rpx; border-radius: 16rpx;">
+      <text style="color: var(--warning); font-size: 24rpx; line-height: 1.5; font-weight: 600;">⚠️ 温馨提示：未提前报备随意缺课可能导致正常消耗课时。最终是否退还不扣课时由审批人员决定。</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,65 @@
+<!--pages/records/records.wxml-->
+<view class="container fade-in" wx:if="{{isVip}}">
+  <view class="header-section">
+    <text class="title">成长履历</text>
+    <text class="subtitle">记录每一次灵感的迸发</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-state">
+    <view class="loader"></view>
+  </view>
+
+  <view wx:elif="{{records.length === 0}}" class="empty-state">
+    <image src="/assets/empty.png" class="empty-img" style="width:200rpx;height:200rpx;margin:100rpx auto 40rpx;display:block;opacity:0.3;"></image>
+    <text style="color:var(--gray-500);text-align:center;display:block">暂无任何成就不留白</text>
+  </view>
+
+  <view wx:else class="records-list">
+    <view class="record-card glass-card" wx:for="{{records}}" wx:key="_id">
+      
+      <!-- Top info -->
+      <view class="record-top">
+        <view class="rt-left">
+          <text class="r-course">{{item.course}}</text>
+          <text class="r-date">{{item.date}}</text>
+        </view>
+        <view class="rt-right">
+          <text class="r-consume">-{{item.consume}} 课时</text>
+        </view>
+      </view>
+
+      <!-- Teacher details -->
+      <view class="r-teacher">
+        <text class="r-label">主讲教师：</text>
+        <text class="r-val">{{item.teacher}}</text>
+      </view>
+
+      <!-- Text comment -->
+      <view class="r-comment-box" wx:if="{{item.comment}}">
+        <text class="r-comment-title">教师寄语</text>
+        <rich-text class="r-comment-text" nodes="{{item.comment}}"></rich-text>
+      </view>
+
+      <!-- Photos array -->
+      <view class="r-photos" wx:if="{{item.artwork && item.artwork.length > 0}}">
+        <image 
+          wx:for="{{item.artwork}}" 
+          wx:for-item="url" 
+          wx:for-index="idx"
+          wx:key="idx"
+          class="r-photo-item" 
+          mode="aspectFill" 
+          src="{{url}}"
+          data-url="{{url}}"
+          data-urls="{{item.artwork}}"
+          bindtap="previewImage"
+        ></image>
+      </view>
+      
+    </view>
+  </view>
+</view>
+
+<view class="container" wx:else style="display:flex;align-items:center;justify-content:center;height:100vh;">
+  <text style="color:var(--gray-400)">未激活教务系统权限</text>
+</view>

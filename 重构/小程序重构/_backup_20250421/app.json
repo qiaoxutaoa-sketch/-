@@ -1,0 +1,35 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/bind/bind",
+    "pages/records/records",
+    "pages/leave/leave",
+    "pages/unlock/unlock"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#F8FAFC",
+    "navigationBarTitleText": "青九家端",
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "default"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#94a3b8",
+    "selectedColor": "#3b82f6",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "大厅"
+      },
+      {
+        "pagePath": "pages/bind/bind",
+        "text": "我的"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

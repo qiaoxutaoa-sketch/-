@@ -1,0 +1,74 @@
+/** app.wxss — Neo-Editorial System (杂志化排版) **/
+
+page {
+  /* 极致收敛的色板，回归真正的白与黑 */
+  --bg: #FFFFFF;
+  --surface: #F9FAFB;
+  --text-primary: #000000;
+  --text-secondary: #555555;
+  --text-muted: #999999;
+  
+  /* 品牌色仅用作高光与核心数据点 */
+  --brand-orange: #E8942A;
+  --brand-blue: #1E6FBA;
+  
+  /* 极端的细线分割 (Hairline) */
+  --divider: #EAEAEA;
+  --divider-dark: #000000;
+
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  color: var(--text-primary);
+  font-size: 28rpx;
+  background-color: var(--bg);
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 取消所有自带边距与背景色 */
+button {
+  margin: 0; padding: 0; background: transparent; border-radius: 0;
+}
+button::after { display: none; }
+
+.btn-black {
+  background: var(--text-primary);
+  color: #FFFFFF;
+  font-size: 30rpx;
+  font-weight: 600;
+  padding: 32rpx;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+  transition: opacity 0.2s;
+}
+.btn-black:active { opacity: 0.7; }
+.btn-outline {
+  border: 1px solid var(--text-primary);
+  color: var(--text-primary);
+  font-size: 30rpx;
+  font-weight: 600;
+  padding: 32rpx;
+  transition: all 0.2s;
+}
+.btn-outline:active { background: var(--surface); }
+
+/* 基础文字体系 */
+.display-title {
+  font-size: 80rpx;
+  font-weight: 900;
+  letter-spacing: -2rpx;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.sub-title {
+  font-size: 20rpx;
+  font-weight: 600;
+  letter-spacing: 4rpx;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
