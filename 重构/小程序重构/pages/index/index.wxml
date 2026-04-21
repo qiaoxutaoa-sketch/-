@@ -1,183 +1,220 @@
 <!--pages/index/index.wxml — Immersive Gallery & HUD -->
 <view class="page-container" style="padding-top: {{navBarFullHeight}}px;">
 
-  <!-- 液态玻璃状态栏 -->
-  <!-- 透明占位状态栏（无 logo） -->
+  <!-- 透明占位状态栏 -->
   <view class="liquid-status-bar" style="height: {{navBarFullHeight}}px;"></view>
 
-  <view wx:if="{{!isVip}}" class="unauth-state fade-in">
-    <image class="unauth-logo" src="/assets/logo.png" mode="aspectFit"></image>
-    <view class="unauth-title">AWAITING VERIFICATION</view>
-    <view class="unauth-subtitle">等待青九美术核实您的学员身份</view>
-  </view>
-
-  <!-- === 主视觉画廊 (The Gallery) === -->
-  <view wx:else class="gallery-view fade-in">
+  <!-- === 画廊视图 — 对所有人可见 === -->
+  <view class="gallery-view fade-in">
     <block wx:if="{{recordsList.length > 0}}">
       <view class="gallery-item" wx:for="{{recordsList}}" wx:key="_id">
-        <!-- 满屏极致留白或全宽大图 -->
         <image wx:if="{{item.artwork && item.artwork.length > 0}}" class="gallery-image" mode="widthFix" src="{{item.artwork[0]}}"></image>
         <view wx:else class="gallery-image empty-image">
-          <text>NO ARTWORK SUBMITTED</text>
+          <text>暂无画作</text>
         </view>
-        
         <view class="gallery-caption">
           <view class="caption-date">{{item.date}}</view>
           <text class="caption-text">{{item.comment || item.teacherComment || '这是一次静谧的创作过程。'}}</text>
-          <view class="caption-author">— {{item.teacher}}</view>
+          <view class="caption-footer">
+            <view class="caption-author">— {{item.teacher}}</view>
+            <view class="like-btn {{item.liked ? 'liked' : ''}}" bindtap="toggleLike" data-id="{{item._id}}">
+              <text class="like-icon">{{item.liked ? '♥' : '♡'}}</text>
+              <text class="like-count">{{item.likes || 0}}</text>
+            </view>
+          </view>
         </view>
       </view>
     </block>
     <view wx:else class="empty-gallery">
-      <text class="empty-text">童年的画布正在准备中</text>
+      <text class="empty-text">{{isVip ? galleryEmptyText : '青九美术工作室'}}</text>
     </view>
   </view>
 
-  <!-- === 悬浮唤醒胶囊 (Floating HUD Capsule) === -->
+  <!-- === HUD 胶囊 — 仅授权用户可见 === -->
   <view wx:if="{{isVip}}" class="hud-capsule {{showHUD ? 'hud-hidden' : ''}}" bindtap="toggleHUD">
     <image class="capsule-logo" src="/assets/logo.png" mode="heightFix"></image>
     <view class="capsule-divider"></view>
-    <text class="capsule-text">档案与服务</text>
+    <text class="capsule-text">{{students[currentStudentIdx].name || capsuleDefault}}</text>
     <view class="capsule-dot"></view>
   </view>
 
-  <!-- === 抽屉控制中枢 (The Drawer) === -->
-  <view class="hud-drawer-overlay {{showHUD ? 'show' : ''}}" bindtap="closeHUD">
-    <!-- CatchTap 阻止冒泡关闭 -->
+  <!-- === 抽屉 — 仅授权用户可操作 === -->
+  <view wx:if="{{isVip}}" class="hud-drawer-overlay {{showHUD ? 'show' : ''}}" bindtap="closeHUD">
     <view class="hud-drawer-content" catchtap="return">
       
       <view class="drawer-handler" bindtap="closeHUD"></view>
 
-      <!-- 学员切换器 -->
-      <view class="student-switcher">
-        <view class="switcher-arrow {{currentStudentIdx <= 0 ? 'disabled' : ''}}" bindtap="prevStudent">‹</view>
-        <view class="switcher-info">
-          <text class="switcher-name">{{students[currentStudentIdx].name}}</text>
-          <text class="switcher-meta">{{students[currentStudentIdx].course || ''}} · {{students.length > 1 ? (currentStudentIdx + 1) + '/' + students.length : '独生学员'}}</text>
-        </view>
-        <view class="switcher-arrow {{currentStudentIdx >= students.length - 1 ? 'disabled' : ''}}" bindtap="nextStudent">›</view>
-      </view>
+      <!-- 首次引导（无绑定时） -->
+      <block wx:if="{{students.length === 0}}">
+        <view class="onboard-section">
+          <image class="onboard-logo" src="/assets/logo.png" mode="aspectFit"></image>
+          <text class="onboard-title">{{L.onboardTitle}}</text>
+          <text class="onboard-sub">{{L.onboardSub}}</text>
 
-      <!-- 版式驱动：数据追踪 (Typographic Data-Viz) -->
-      <view class="data-grid">
-        <view class="data-cell main-cell" bindtap="goToRecords" hover-class="cell-hover">
-          <text class="data-huge">{{students[currentStudentIdx].remain || 0}}</text>
-          <text class="data-label">可用课时 REMAINING</text>
+          <view class="onboard-cards">
+            <view class="onboard-card" bindtap="openBindPopup">
+              <text class="onboard-card-title">{{L.bindTitle}}</text>
+              <text class="onboard-card-desc">{{L.bindDesc}}</text>
+              <view class="onboard-card-arrow">></view>
+            </view>
+            <view class="onboard-card" bindtap="openNewRegistration">
+              <text class="onboard-card-title">{{L.newTitle}}</text>
+              <text class="onboard-card-desc">{{L.newDesc}}</text>
+              <view class="onboard-card-arrow">></view>
+            </view>
+          </view>
         </view>
-        <view class="data-cell sub-cell">
-          <text class="data-norm">{{students[currentStudentIdx].totalHours || 0}}</text>
-          <text class="data-label">生涯总计 LIFETIME</text>
+      </block>
+
+      <!-- 正常模式（有绑定时） -->
+      <block wx:else>
+        <view class="student-switcher">
+          <view class="switcher-arrow {{currentStudentIdx <= 0 ? 'disabled' : ''}}" bindtap="prevStudent">‹</view>
+          <view class="switcher-info">
+            <image class="student-avatar" src="{{students[currentStudentIdx].avatar || '/assets/avatars/avatar_1.png'}}" mode="aspectFill" bindtap="openAvatarPicker"></image>
+            <text class="switcher-name">{{students[currentStudentIdx].name}}</text>
+            <text class="switcher-meta">{{students[currentStudentIdx].course || ''}} · {{students.length > 1 ? (currentStudentIdx + 1) + '/' + students.length : L.soloTag}}</text>
+          </view>
+          <view class="switcher-arrow {{currentStudentIdx >= students.length - 1 ? 'disabled' : ''}}" bindtap="nextStudent">›</view>
         </view>
-      </view>
 
-      <view class="hud-divider"></view>
-
-      <!-- 服务星环 (Service Grid) -->
-      <view class="bento-grid">
-        <view class="grid-cell cell-wide" bindtap="openNewRegistration">
-          <text class="cell-index">01</text>
-          <view class="cell-content">
-            <text class="cell-title">新生建档</text>
-            <text class="cell-desc">建立专属学员档案数据</text>
+        <view class="data-grid">
+          <view class="data-cell main-cell" bindtap="goToRecords" hover-class="cell-hover">
+            <text class="data-huge">{{students[currentStudentIdx].remain || 0}}</text>
+            <text class="data-label">{{L.remainLabel}}</text>
+          </view>
+          <view class="data-cell sub-cell">
+            <text class="data-norm">{{students[currentStudentIdx].totalHours || 0}}</text>
+            <text class="data-label">{{L.totalLabel}}</text>
           </view>
         </view>
 
-        <view class="grid-cell" bindtap="goLeave">
-          <text class="cell-index">02</text>
-          <view class="cell-content">
-            <text class="cell-title">请假</text>
-            <text class="cell-desc">课程停课</text>
-          </view>
-        </view>
+        <view class="hud-divider"></view>
 
-        <view class="grid-cell" bindtap="contactTeacher">
-          <text class="cell-index">03</text>
-          <view class="cell-content">
-            <text class="cell-title">客服</text>
-            <text class="cell-desc">获取支持</text>
+        <view class="bento-grid">
+          <view class="grid-cell cell-wide" bindtap="openNewRegistration">
+            <text class="cell-index">01</text>
+            <view class="cell-content">
+              <text class="cell-title">{{L.svc1}}</text>
+              <text class="cell-desc">{{L.svc1d}}</text>
+            </view>
           </view>
-        </view>
 
-        <view class="grid-cell cell-wide" bindtap="aboutUs">
-          <text class="cell-index">04</text>
-          <view class="cell-content">
-            <text class="cell-title">关于青九</text>
-            <text class="cell-desc">探索美术教育理念</text>
+          <view class="grid-cell" bindtap="goLeave">
+            <text class="cell-index">02</text>
+            <view class="cell-content">
+              <text class="cell-title">{{L.svc2}}</text>
+              <text class="cell-desc">{{L.svc2d}}</text>
+            </view>
+          </view>
+
+          <view class="grid-cell" bindtap="contactTeacher">
+            <text class="cell-index">03</text>
+            <view class="cell-content">
+              <text class="cell-title">{{L.svc3}}</text>
+              <text class="cell-desc">{{L.svc3d}}</text>
+            </view>
+          </view>
+
+          <view class="grid-cell cell-wide" bindtap="aboutUs">
+            <text class="cell-index">04</text>
+            <view class="cell-content">
+              <text class="cell-title">{{L.svc4}}</text>
+              <text class="cell-desc">{{L.svc4d}}</text>
+            </view>
           </view>
         </view>
-      </view>
+      </block>
       
     </view>
   </view>
 
-  <!-- 新生登记表单 -->
-  <view class="hud-drawer-overlay {{showNewPopup ? 'show' : ''}}" style="z-index: 9999;" bindtap="closeNewPopup">
-    <view class="hud-drawer-content" style="height: 80vh;" catchtap="return">
-      <view class="drawer-handler" bindtap="closeNewPopup"></view>
-      
-      <view class="form-header">
-        <view class="form-title">新生建档</view>
-        <view class="form-close" bindtap="closeNewPopup">✕</view>
-      </view>
-      
-      <view class="form-group">
-        <text class="form-label">姓名 NAME *</text>
-        <input class="form-input" placeholder="输入真实姓名" placeholder-class="plas" data-field="name" bindinput="handleNewInput"/>
-      </view>
+  <!-- 表单弹窗（仅授权后渲染） -->
+  <block wx:if="{{isVip}}">
 
-      <view class="form-group">
-        <text class="form-label">性别 GENDER *</text>
-        <picker bindchange="bindGenderChange" range="{{genders}}">
-          <view class="form-input">{{newStudent.gender || '点击选择'}}</view>
-        </picker>
-      </view>
-
-      <view class="form-group">
-        <text class="form-label">年龄 AGE *</text>
-        <input class="form-input" type="number" placeholder="输入年龄" placeholder-class="plas" data-field="age" bindinput="handleNewInput"/>
-      </view>
-
-      <view class="form-group">
-        <text class="form-label">联系电话 PHONE *</text>
-        <input class="form-input" type="number" placeholder="11位手机号" placeholder-class="plas" data-field="phone" bindinput="handleNewInput"/>
-      </view>
-
-      <view class="form-btn-wrap">
-        <button class="btn-black" bindtap="submitNew">提交审核 SUBMIT</button>
-      </view>
-
-      <view class="bind-entry" bindtap="openBindPopup">
-        <text class="bind-entry-text">已有学员档案？点此绑定</text>
+    <!-- 注册表单 -->
+    <view class="hud-drawer-overlay {{showNewPopup ? 'show' : ''}}" style="z-index: 9999;" bindtap="closeNewPopup">
+      <view class="hud-drawer-content" style="height: 80vh;" catchtap="return">
+        <view class="drawer-handler" bindtap="closeNewPopup"></view>
+        <view class="form-header">
+          <view class="form-title">{{L.formNewTitle}}</view>
+          <view class="form-close" bindtap="closeNewPopup">✕</view>
+        </view>
+        <view class="form-group">
+          <text class="form-label">{{L.fieldName}}</text>
+          <input class="form-input" placeholder="{{L.phName}}" placeholder-class="plas" data-field="name" bindinput="handleNewInput"/>
+        </view>
+        <view class="form-group">
+          <text class="form-label">{{L.fieldGender}}</text>
+          <picker bindchange="bindGenderChange" range="{{genders}}">
+            <view class="form-input">{{newStudent.gender || L.phPick}}</view>
+          </picker>
+        </view>
+        <view class="form-group">
+          <text class="form-label">{{L.fieldAge}}</text>
+          <input class="form-input" type="number" placeholder="{{L.phAge}}" placeholder-class="plas" data-field="age" bindinput="handleNewInput"/>
+        </view>
+        <view class="form-group">
+          <text class="form-label">{{L.fieldPhone}}</text>
+          <input class="form-input" type="number" placeholder="{{L.phPhone}}" placeholder-class="plas" data-field="phone" bindinput="handleNewInput"/>
+        </view>
+        <view class="form-btn-wrap">
+          <button class="btn-black" bindtap="submitNew">{{L.btnSubmit}}</button>
+        </view>
+        <view class="bind-entry" bindtap="openBindPopup">
+          <text class="bind-entry-text">{{L.switchBind}}</text>
+        </view>
       </view>
     </view>
-  </view>
 
-  <!-- 老学员绑定表单 -->
-  <view class="hud-drawer-overlay {{showBindPopup ? 'show' : ''}}" style="z-index: 10000;" bindtap="closeBindPopup">
-    <view class="hud-drawer-content" style="height: 50vh;" catchtap="return">
-      <view class="drawer-handler" bindtap="closeBindPopup"></view>
-      
-      <view class="form-header">
-        <view class="form-title">绑定学员</view>
-        <view class="form-close" bindtap="closeBindPopup">✕</view>
-      </view>
-
-      <view class="bind-hint">输入孩子姓名和报名时留的手机号，系统将自动匹配并绑定至您的微信</view>
-
-      <view class="form-group">
-        <text class="form-label">孩子姓名 NAME *</text>
-        <input class="form-input" placeholder="与报名时一致" placeholder-class="plas" data-field="bindName" bindinput="handleBindInput"/>
-      </view>
-
-      <view class="form-group">
-        <text class="form-label">报名手机号 PHONE *</text>
-        <input class="form-input" type="number" placeholder="报名时填写的手机号" placeholder-class="plas" data-field="bindPhone" bindinput="handleBindInput"/>
-      </view>
-
-      <view class="form-btn-wrap">
-        <button class="btn-black" bindtap="submitBind">绑定 BIND</button>
+    <!-- 绑定表单 -->
+    <view class="hud-drawer-overlay {{showBindPopup ? 'show' : ''}}" style="z-index: 10000;" bindtap="closeBindPopup">
+      <view class="hud-drawer-content" style="height: 50vh;" catchtap="return">
+        <view class="drawer-handler" bindtap="closeBindPopup"></view>
+        <view class="form-header">
+          <view class="form-title">{{L.formBindTitle}}</view>
+          <view class="form-close" bindtap="closeBindPopup">✕</view>
+        </view>
+        <view class="bind-hint">{{L.bindHint}}</view>
+        <view class="form-group">
+          <text class="form-label">{{L.fieldBindName}}</text>
+          <input class="form-input" placeholder="{{L.phBindName}}" placeholder-class="plas" data-field="bindName" bindinput="handleBindInput"/>
+        </view>
+        <view class="form-group">
+          <text class="form-label">{{L.fieldBindPhone}}</text>
+          <input class="form-input" type="number" placeholder="{{L.phBindPhone}}" placeholder-class="plas" data-field="bindPhone" bindinput="handleBindInput"/>
+        </view>
+        <view class="form-btn-wrap">
+          <button class="btn-black" bindtap="submitBind">{{L.btnBind}}</button>
+        </view>
       </view>
     </view>
-  </view>
+
+    <!-- 头像选择 -->
+    <view class="hud-drawer-overlay {{showAvatarPicker ? 'show' : ''}}" style="z-index: 10001;" bindtap="closeAvatarPicker">
+      <view class="hud-drawer-content" style="height: 65vh;" catchtap="return">
+        <view class="drawer-handler" bindtap="closeAvatarPicker"></view>
+        <view class="form-header">
+          <view class="form-title">{{L.avatarTitle}}</view>
+          <view class="form-close" bindtap="closeAvatarPicker">✕</view>
+        </view>
+        <view class="avatar-grid">
+          <image 
+            wx:for="{{presetAvatars}}" 
+            wx:key="*this" 
+            class="avatar-option {{item === students[currentStudentIdx].avatar ? 'avatar-selected' : ''}}" 
+            src="{{item}}" 
+            mode="aspectFill" 
+            bindtap="selectPresetAvatar" 
+            data-src="{{item}}"
+          ></image>
+        </view>
+        <view class="avatar-upload-wrap">
+          <button class="btn-outline" bindtap="uploadCustomAvatar">{{L.avatarUpload}}</button>
+        </view>
+      </view>
+    </view>
+
+  </block>
 
 </view>

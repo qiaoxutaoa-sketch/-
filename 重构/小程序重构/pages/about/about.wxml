@@ -1,0 +1,64 @@
+<view class="about-page">
+
+  <!-- 品牌展示区 -->
+  <view class="brand-section">
+    <image class="brand-logo" src="/assets/logo.png" mode="aspectFit"></image>
+    <text class="brand-name">青九艺术</text>
+    <text class="brand-slogan">三尺丹青任挥毫</text>
+  </view>
+
+  <!-- 品牌故事 -->
+  <view class="card story-card">
+    <text class="card-title">我们的故事</text>
+    <text class="story-text">青九创设于城阳，名取"丹青"之"青"。工作室不大，几个孩子围坐在画桌前，听老师讲色彩、讲构图，偶尔也讲一些和画画完全无关的闲话。我们相信一件事：好的美术教育不是教孩子画得像，而是让他们敢画、想画、享受画。每个孩子都带着自己的节奏来，我们要做的只是把颜料递到手边，把时间留给画面。</text>
+  </view>
+
+  <!-- 联系我们 -->
+  <view class="card contact-card">
+    <text class="card-title">联系我们</text>
+
+    <view class="contact-row" bindtap="openLocation">
+      <view class="contact-icon-wrap icon-location">
+        <view class="icon-dot"></view>
+      </view>
+      <view class="contact-info">
+        <text class="contact-label">校区地址</text>
+        <text class="contact-value">城阳实验二小东50米</text>
+        <text class="contact-action">点击一键导航</text>
+      </view>
+    </view>
+
+    <view class="contact-divider"></view>
+
+    <view class="contact-row" bindtap="callPhone">
+      <view class="contact-icon-wrap icon-phone">
+        <view class="icon-phone-shape"></view>
+      </view>
+      <view class="contact-info">
+        <text class="contact-label">联系电话</text>
+        <text class="contact-value">16678702390</text>
+        <text class="contact-action">点击一键拨号</text>
+      </view>
+    </view>
+
+    <view class="contact-divider"></view>
+
+    <view class="contact-row">
+      <view class="contact-icon-wrap icon-clock">
+        <view class="icon-clock-shape"></view>
+      </view>
+      <view class="contact-info">
+        <text class="contact-label">营业时段</text>
+        <text class="contact-value">周二至周日 08:00 - 21:00</text>
+        <text class="contact-sub">（周一店休）</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="footer">
+    <text class="footer-version">当前版本 V1.0.0</text>
+    <text class="footer-copy">Qingjiu Art Studio © 2026</text>
+  </view>
+
+</view>

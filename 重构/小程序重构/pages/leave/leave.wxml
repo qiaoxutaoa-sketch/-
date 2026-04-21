@@ -1,53 +1,59 @@
 <!--pages/leave/leave.wxml-->
 <view class="page-container" style="padding-top: {{navBarFullHeight}}px;">
 
-  <!-- 液态玻璃状态栏 (带返回按钮) -->
+  <!-- 透明状态栏 -->
   <view class="liquid-status-bar" style="height: {{navBarFullHeight}}px;">
     <view class="status-inner" style="margin-top: {{navTop}}px; height: {{navHeight}}px;">
-      <view class="back-btn" bindtap="goBack">‹ 返回</view>
+      <view class="back-btn" bindtap="goBack">‹ Back</view>
     </view>
   </view>
 
-  <view class="container fade-in">
-    <view class="header-section">
-      <text class="display-title">LEAVE</text>
-      <text class="title">提前报备</text>
-      <text class="subtitle">让老师及时调整授课计划</text>
+  <block wx:if="{{isVip}}">
+    <view class="container fade-in">
+      <view class="header-section">
+        <text class="display-title">{{L.tag}}</text>
+        <text class="title">{{L.title}}</text>
+        <text class="subtitle">{{L.subtitle}}</text>
+      </view>
+
+      <view class="form-container">
+        <view class="form-group">
+          <text class="form-label">{{L.fieldStudent}}</text>
+          <picker bindchange="bindStudentChange" value="{{studentIdx}}" range="{{students}}" range-key="name">
+            <view class="form-input">
+              {{students.length > 0 ? students[studentIdx].name : '...'}}
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-group">
+          <text class="form-label">{{L.fieldDate}}</text>
+          <picker mode="date" value="{{date}}" bindchange="bindDateChange">
+            <view class="form-input">{{date}}</view>
+          </picker>
+        </view>
+
+        <view class="form-group form-group-textarea">
+          <text class="form-label">{{L.fieldReason}}</text>
+          <textarea 
+            class="form-input textarea" 
+            placeholder="{{L.phReason}}" 
+            placeholder-class="plas"
+            bindinput="handleReason"
+            maxlength="200"
+          ></textarea>
+          <view class="word-count">{{reason.length}}/200</view>
+        </view>
+
+        <view class="form-btn-wrap">
+          <button class="btn-black" bindtap="submitLeave">SUBMIT</button>
+        </view>
+      </view>
     </view>
+  </block>
 
-    <view class="form-container">
-      
-      <view class="form-group">
-        <text class="form-label">选择学员 STUDENT *</text>
-        <picker bindchange="bindStudentChange" value="{{studentIdx}}" range="{{students}}" range-key="name">
-          <view class="form-input">
-            {{students.length > 0 ? students[studentIdx].name : '加载中...'}}
-          </view>
-        </picker>
-      </view>
-
-      <view class="form-group">
-        <text class="form-label">请假日期 DATE *</text>
-        <picker mode="date" value="{{date}}" bindchange="bindDateChange">
-          <view class="form-input">{{date}}</view>
-        </picker>
-      </view>
-
-      <view class="form-group form-group-textarea">
-        <text class="form-label">请假事由 REASON *</text>
-        <textarea 
-          class="form-input textarea" 
-          placeholder="例如：发烧请假，下周一来补课" 
-          placeholder-class="plas"
-          bindinput="handleReason"
-          maxlength="200"
-        ></textarea>
-        <view class="word-count">{{reason.length}}/200</view>
-      </view>
-
-      <view class="form-btn-wrap">
-        <button class="btn-black" bindtap="submitLeave">确认提交 SUBMIT</button>
-      </view>
-    </view>
+  <view wx:else class="container" style="display:flex;align-items:center;justify-content:center;height:80vh;">
+    <text style="color:#ccc">Coming Soon</text>
   </view>
+
 </view>

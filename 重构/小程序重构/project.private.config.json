@@ -5,11 +5,18 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/lab/lab",
+          "pathName": "pages/lab/lab",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "pages/unlock/unlock",
           "pathName": "pages/unlock/unlock",
           "query": "scene=unlock",
-          "scene": null,
-          "launchMode": "default"
+          "launchMode": "default",
+          "scene": null
         }
       ]
     }

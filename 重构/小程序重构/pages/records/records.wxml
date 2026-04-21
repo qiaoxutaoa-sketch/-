@@ -1,8 +1,8 @@
 <!--pages/records/records.wxml-->
 <view class="container fade-in" wx:if="{{isVip}}">
   <view class="header-section">
-    <text class="title">成长履历</text>
-    <text class="subtitle">记录每一次灵感的迸发</text>
+    <text class="title">{{pageTitle}}</text>
+    <text class="subtitle">{{pageSubtitle}}</text>
   </view>
 
   <view wx:if="{{loading}}" class="loading-state">
@@ -24,19 +24,19 @@
           <text class="r-date">{{item.date}}</text>
         </view>
         <view class="rt-right">
-          <text class="r-consume">-{{item.consume}} 课时</text>
+          <text class="r-consume">-{{item.consume}} {{consumeUnit}}</text>
         </view>
       </view>
 
       <!-- Teacher details -->
       <view class="r-teacher">
-        <text class="r-label">主讲教师：</text>
+        <text class="r-label">{{teacherLabel}}</text>
         <text class="r-val">{{item.teacher}}</text>
       </view>
 
       <!-- Text comment -->
       <view class="r-comment-box" wx:if="{{item.comment}}">
-        <text class="r-comment-title">教师寄语</text>
+        <text class="r-comment-title">{{commentTitle}}</text>
         <rich-text class="r-comment-text" nodes="{{item.comment}}"></rich-text>
       </view>
 
@@ -61,5 +61,5 @@
 </view>
 
 <view class="container" wx:else style="display:flex;align-items:center;justify-content:center;height:100vh;">
-  <text style="color:var(--gray-400)">未激活教务系统权限</text>
+  <text style="color:#ccc">Coming Soon</text>
 </view>

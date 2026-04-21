@@ -5,28 +5,44 @@ const app = getApp();
 
 Page({
   data: {
+    isVip: false,
     students: [],
     studentIdx: 0,
     date: '',
     reason: '',
     navTop: 0,
     navHeight: 44,
-    navBarFullHeight: 88
+    navBarFullHeight: 88,
+    L: {}
   },
 
   onLoad() {
-    const sysInfo = wx.getSystemInfoSync();
     const menuButton = wx.getMenuButtonBoundingClientRect();
     const navBarFullHeight = menuButton.top + menuButton.height + 8;
+    const vip = app.globalData.isVip;
     
-    this.fetchStudents();
-    const today = new Date().toISOString().split('T')[0];
     this.setData({ 
-      date: today,
+      date: new Date().toISOString().split('T')[0],
       navTop: menuButton.top,
       navHeight: menuButton.height,
-      navBarFullHeight: navBarFullHeight
+      navBarFullHeight,
+      isVip: vip
     });
+
+    if (vip) {
+      this.setData({
+        L: {
+          tag: 'LEAVE',
+          title: '\u63d0\u524d\u62a5\u5907',
+          subtitle: '\u8ba9\u8001\u5e08\u53ca\u65f6\u8c03\u6574\u8ba1\u5212',
+          fieldStudent: 'STUDENT *',
+          fieldDate: 'DATE *',
+          fieldReason: 'REASON *',
+          phReason: '\u4f8b\u5982\uff1a\u53d1\u70e7\u8bf7\u5047\uff0c\u4e0b\u5468\u4e00\u6765\u8865'
+        }
+      });
+      this.fetchStudents();
+    }
   },
 
   goBack() {

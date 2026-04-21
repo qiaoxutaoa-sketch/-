@@ -20,13 +20,13 @@ export async function callCloudApi(action, params = {}) {
     if (res.result && res.result.success) {
       return res.result;
     } else {
-      const msg = res.result ? res.result.msg : '云端返回异常';
-      wx.showToast({
-        title: msg,
-        icon: 'none',
-        duration: 2500
-      });
-      return Promise.reject(new Error(msg));
+      let msgStr = '云端返回异常';
+      if (res.result) {
+        msgStr = res.result.msg || ('Result is completely missing msg: ' + JSON.stringify(res.result));
+      } else {
+        msgStr = '完全未收到 res.result: ' + JSON.stringify(res);
+      }
+      return Promise.reject(new Error(msgStr));
     }
   } catch (error) {
     wx.showToast({

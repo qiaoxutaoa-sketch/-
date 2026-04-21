@@ -15,6 +15,10 @@ exports.main = async (event, context) => {
   // Web SDK 或小程序端传的 data 的层级可能不同，做兼容处理
   const payload = event.data || event;
 
+  // [DIAG]
+  console.log('[DIAG] v2 hit, action=', action);
+  if (action === 'ping') return { success: true, msg: 'pong-v2', ts: Date.now() };
+
   const { _callerPhone, _callerPassword } = payload;
   let callerRole = 'guest';
 
@@ -517,7 +521,8 @@ exports.main = async (event, context) => {
         console.log('[getMyTeachers] Found students for openid:', stuIds)
         if (stuIds.length === 0) return { success: true, data: [] }
 
-        // 2. 鏌ユ壘鎵€鏈夌殑鐝骇骞跺湪浠ｇ爜涓仛鏁扮粍姹備氦闆嗚繃婊わ紝閬垮厤浜戝紑鍙戜娇鐢?_.in 澶勭悊鍙屾暟缁勭殑灞€闄愭€?        const classRes = await db.collection('classes').get()
+        // 查找所有班级并过滤匹配的
+        const classRes = await db.collection('classes').get()
         const myClasses = classRes.data.filter(cls => {
           if (!cls.studentIds || !Array.isArray(cls.studentIds)) return false;
           // 鍙璇ョ彮绾ч噷鍖呭惈瀹堕暱鍚嶄笅鐨勪换浣曚竴涓瀛愶紝璇ヨ礋璐ｈ€佸笀灏卞睘浜庤瀹堕暱
@@ -526,7 +531,8 @@ exports.main = async (event, context) => {
         
         console.log('[getMyTeachers] Filtered matched classes:', myClasses)
 
-        // 3. 鎻愬彇鑰佸笀鐨勫幓閲嶈仈绯绘柟寮?        const teachers = [];
+        // 提取老师的去重联系方式
+        const teachers = [];
         const seenPhones = new Set();
         myClasses.forEach(cls => {
            if (cls.teacherName && cls.teacherPhone && !seenPhones.has(cls.teacherPhone)) {
@@ -684,7 +690,8 @@ exports.main = async (event, context) => {
 
         if (!studentId || !avatarUrl || !openid) return { success: false, msg: '缺少参数鎴栨巿鏉冧俊鎭己澶?'};
 
-        // 閴存潈锛氬彧鏈夌粦瀹氫簡璇ュ闀跨殑瀛︾敓锛屾墠鑳借璇ュ闀夸慨鏀瑰ご鍍?        const stuRes = await db.collection('students').doc(studentId).get();
+        // 鉴权：只有绑定了该家长的学生才能修改头像
+        const stuRes = await db.collection('students').doc(studentId).get();
         if (!stuRes.data || stuRes.data._openid !== openid) {
           return { success: false, msg: '越权操作：只能修改自己关联绑定的学员头像' };
         }

@@ -21,6 +21,13 @@ Page({
     const vip = app.globalData.isVip;
     this.setData({ isVip: vip });
     if (vip) {
+      this.setData({
+        pageTitle: '\u6210\u957f\u5c65\u5386',
+        pageSubtitle: '\u8bb0\u5f55\u6bcf\u4e00\u6b21\u7075\u611f\u7684\u8ff8\u53d1',
+        consumeUnit: '\u8bfe\u65f6',
+        teacherLabel: '\u4e3b\u8bb2\uff1a',
+        commentTitle: '\u5bc4\u8bed'
+      });
       this.fetchRecords();
     } else {
       this.setData({ loading: false });

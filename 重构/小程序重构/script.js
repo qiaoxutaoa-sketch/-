@@ -1,1 +1,0 @@
-const content = require('fs').readFileSync('E:/青九教务系统-三端（重构）/重构/小程序重构/cloudfunctions/adminOperate/index.js', 'utf8'); const idx = content.indexOf('case \'' + 'bindStudent' + '\':'); console.log(content.substring(idx-50, idx+1500));

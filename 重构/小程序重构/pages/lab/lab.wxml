@@ -1,0 +1,35 @@
+<view class="lab-container">
+  <!-- 底层 WebGL 画布，充满全屏 -->
+  <canvas 
+    type="webgl" 
+    id="glcanvas" 
+    class="webgl-bg"
+    disable-scroll="true"
+  ></canvas>
+
+  <!-- 上层用于承载滚动事件的容器 -->
+  <scroll-view 
+    class="scroll-area" 
+    scroll-y="true" 
+    bindscroll="onScroll"
+    enhanced="true"
+    bounces="false"
+  >
+    <!-- 头部导航 -->
+    <view class="nav-header">
+      <view class="back-btn" bindtap="goBack">返回首页</view>
+      <text class="title">硬件级折射测试区</text>
+    </view>
+
+    <!-- 虚拟滚动高度占位，产生巨大的可滚动区域 -->
+    <view class="scroll-content"></view>
+  </scroll-view>
+
+  <!-- 吸底胶囊文字（覆盖在胶囊高光折射区之上） -->
+  <view class="hud-mock">
+    <image class="capsule-logo" src="/assets/logo.png" mode="heightFix"></image>
+    <view class="capsule-divider"></view>
+    <text class="capsule-text">Studio</text>
+    <view class="capsule-dot"></view>
+  </view>
+</view>
